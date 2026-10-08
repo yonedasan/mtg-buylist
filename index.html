@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- 読み込み先と通信先を、このアプリが使うものだけに限定する -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://www.gstatic.com; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src https://cards.scryfall.io https://svgs.scryfall.io data:; connect-src https://api.scryfall.com https://api.frankfurter.dev https://*.googleapis.com; base-uri 'none'; form-action 'none'">
 <title>MTG購入リスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -481,8 +483,26 @@ if (!SORT_DIR[state.ui.sort]) state.ui.sort = 'pri';
 if (state.ui.dir !== 'asc' && state.ui.dir !== 'desc') state.ui.dir = SORT_DIR[state.ui.sort];
 
 /* ---------- 保存 ---------- */
-function clean(card) { const o = {}; for (const [k, v] of Object.entries(card)) o[k] = v === undefined ? null : v; return o; }
-function localCards() { const a = lsGet(LS.cards, []); return Array.isArray(a) ? a : []; }
+// 保存や同期で受け取ったカードを、決まった形と安全な値にそろえる。
+// リンク先と画像はScryfallのものだけ、色は白青黒赤緑だけを通す。
+const text = (v, max) => (v == null ? '' : String(v)).slice(0, max);
+function clean(o) {
+  o = o && typeof o === 'object' ? o : {};
+  const usd = Number(o.usd), pri = Number(o.priority);
+  return {
+    id: text(o.id, 80), name: text(o.name, 200), nameJa: o.nameJa ? text(o.nameJa, 200) : null, query: text(o.query, 200), resolved: !!o.resolved,
+    priority: pri === 1 || pri === 3 ? pri : 2, deck: text(o.deck, 60), memo: text(o.memo, 300), bought: !!o.bought,
+    usd: o.usd == null || !Number.isFinite(usd) || usd < 0 ? null : usd,
+    finish: o.finish === 'foil' || o.finish === 'etched' ? o.finish : 'nonfoil', set: text(o.set, 10),
+    sid: /^[0-9a-z-]{1,64}$/i.test(o.sid || '') ? o.sid : null,
+    uri: /^https:\/\/scryfall\.com\//.test(o.uri || '') ? text(o.uri, 300) : null,
+    img: /^https:\/\/cards\.scryfall\.io\//.test(o.img || '') ? text(o.img, 300) : null,
+    colors: Array.isArray(o.colors) ? o.colors.filter(x => typeof x === 'string' && x.length === 1 && 'WUBRG'.includes(x)).slice(0, 5) : [],
+    status: ['ok', 'pending', 'notfound', 'noprice', 'error'].includes(o.status) ? o.status : 'ok',
+    priceAt: Number(o.priceAt) || null, createdAt: Number(o.createdAt) || 0,
+  };
+}
+function localCards() { const a = lsGet(LS.cards, []); return Array.isArray(a) ? a.map(clean).filter(c => c.id) : []; }
 
 async function persist(card) {
   card = clean(card);
@@ -867,7 +887,7 @@ function rowEl(c) {
   const main = c.nameJa || c.name;
   const front = (c.name || '').split(' // ')[0];
   const colors = (c.colors && c.colors.length) ? c.colors : (c.resolved && c.sid ? ['C'] : []);
-  const thumb = h(c.uri ? 'a' : 'span', { class: 'thumb', href: c.uri || null, target: c.uri ? '_blank' : null, rel: c.uri ? 'noopener' : null, title: c.uri ? 'Scryfallでカードを見る' : null },
+  const thumb = h(c.uri ? 'a' : 'span', { class: 'thumb', href: c.uri || null, target: c.uri ? '_blank' : null, rel: c.uri ? 'noopener noreferrer' : null, title: c.uri ? 'Scryfallでカードを見る' : null },
     c.img ? h('img', { src: c.img, alt: '', loading: 'lazy' }) : null);
   return h('li', { class: 'row' + (c.bought ? ' is-bought' : ''), dataset: { id: c.id } },
     h('label', { class: 'c-chk', title: '購入済みにする' },
@@ -889,7 +909,7 @@ function rowEl(c) {
       h('input', { class: 'cell-in', type: 'text', maxLength: 300, value: c.memo || '', placeholder: 'メモ', 'aria-label': main + ' のメモ', dataset: { fk: c.id + ':memo' },
         onchange: e => patch(c.id, { memo: e.target.value }) })),
     h('div', { class: 'c-shop' },
-      front && c.status !== 'notfound' ? h('a', { class: 'shop', href: HARERUYA + q(front), target: '_blank', rel: 'noopener', text: '晴れる屋で見る' }) : null),
+      front && c.status !== 'notfound' ? h('a', { class: 'shop', href: HARERUYA + q(front), target: '_blank', rel: 'noopener noreferrer', text: '晴れる屋で見る' }) : null),
     h('div', { class: 'c-del' },
       h('button', { class: 'del', type: 'button', 'aria-label': main + ' を削除', title: '削除', text: '×', onclick: () => deleteWithUndo(c) })));
 }
@@ -1069,7 +1089,7 @@ async function seal(card) {
 }
 async function unseal(id, v) {
   const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(v.iv), additionalData: utf8enc.encode(id) }, cloud.key, unb64(v.ct));
-  return Object.assign(JSON.parse(utf8dec.decode(pt)), { id });
+  return clean(Object.assign(JSON.parse(utf8dec.decode(pt)), { id }));
 }
 async function openAll(docs) {
   const out = [], next = new Map();
@@ -1280,7 +1300,9 @@ async function start() {
   render();
   if (!cloudOn) refreshPrices(false);
 }
-start();
+// ほかのサイトの中に埋め込まれた状態では動かさない(見えない枠に重ねて操作させる手口への対策)
+if (window.top === window.self) start();
+else document.body.textContent = 'このページは、ほかのサイトに埋め込んだ状態では使えません。アドレスを直接開いてください。';
 </script>
 </body>
 </html>
