@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MTG購入リスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho+B1:wght@700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* レイアウト: 上から「合計」→「追加フォーム」→「絞り込み」→「台帳のような一覧」。PCは表、スマホは1枚ずつのカード。 */
+:root {
+  --bg: #eceeeb;
+  --surface: #fafbfa;
+  --ink: #17201d;
+  --muted: #5b6863;
+  --line: #d3d9d5;
+  --accent: #0f6b5a;
+  --accent-ink: #ffffff;
+  --hi: #b3261e;
+  --mid: #8a5a00;
+  --lo: #5b6863;
+  --warn: #8a5a00;
+  --mana-w: #e6dba8;
+  --mana-u: #2a78c0;
+  --mana-b: #4a4148;
+  --mana-r: #cf3f2b;
+  --mana-g: #2c8a57;
+  --mana-c: #a5a8a4;
+  --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121715;
+    --surface: #1a211e;
+    --ink: #e4ebe7;
+    --muted: #93a19b;
+    --line: #2c3632;
+    --accent: #4fc3a5;
+    --accent-ink: #06231c;
+    --hi: #ff8a80;
+    --mid: #e6b450;
+    --lo: #93a19b;
+    --warn: #e6b450;
+    --mana-w: #efe6bd;
+    --mana-u: #4a97dc;
+    --mana-b: #8d8290;
+    --mana-r: #e6604c;
+    --mana-g: #45a871;
+    --mana-c: #8f9590;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+}
+[hidden] { display: none !important; }
+.wrap {
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+  padding-block: calc(20px + env(safe-area-inset-top, 0px)) calc(56px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: var(--accent); }
+
+/* ヘッダー */
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+h1 { font-family: var(--font-display); font-size: 26px; line-height: 1.2; margin: 0; letter-spacing: .04em; }
+.sync { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.sync .who { color: var(--ink); font-weight: 500; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mid); flex: none; }
+.dot.on { background: var(--accent); }
+
+.btn {
+  border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius);
+  padding: 7px 12px; cursor: pointer; font-weight: 500; font-size: 14px; line-height: 1.3;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.small { padding: 4px 9px; font-size: 13px; }
+.btn.quiet { background: transparent; }
+.btn:disabled { opacity: .55; cursor: default; }
+
+.notice {
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line)); border-radius: var(--radius);
+  background: color-mix(in srgb, var(--warn) 9%, var(--surface));
+  padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 14px;
+}
+.notice p { margin: 0; flex: 1 1 260px; min-width: 0; }
+
+/* 合計 */
+.summary { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 36px; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.total .label, .split .label { font-size: 12px; color: var(--muted); letter-spacing: .08em; }
+.total .yen { font-family: var(--font-data); font-weight: 500; font-size: 38px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.total .sub { font-size: 13px; color: var(--muted); }
+.split { display: flex; gap: 22px; flex-wrap: wrap; }
+.split .v { font-family: var(--font-data); font-size: 17px; font-variant-numeric: tabular-nums; }
+.split .p1 .label { color: var(--hi); } .split .p2 .label { color: var(--mid); }
+.rate { margin-left: auto; text-align: right; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.rate .mono { font-family: var(--font-data); }
+
+/* 追加フォーム */
+.add { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.add-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) auto minmax(0, 1.1fr) minmax(0, 1.5fr) auto; gap: 10px 12px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; position: relative; }
+.field > label, .field > .lbl { font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+.in {
+  width: 100%; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg);
+  padding: 8px 10px; min-height: 38px;
+}
+.in::placeholder { color: var(--muted); opacity: .8; }
+textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data); font-size: 13px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--bg); }
+.seg label { position: relative; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.seg span { display: block; padding: 7px 14px; min-height: 36px; font-weight: 500; }
+.seg label + label span { border-left: 1px solid var(--line); }
+.seg input:checked + span { background: var(--ink); color: var(--bg); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+.suggest {
+  position: absolute; z-index: 20; top: 100%; left: 0; right: 0; margin: 4px 0 0; padding: 4px; list-style: none;
+  background: var(--surface); border: 1px solid var(--muted); border-radius: var(--radius);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 18%, transparent); max-height: 300px; overflow: auto;
+}
+.suggest li { padding: 6px 8px; border-radius: 4px; cursor: pointer; display: flex; gap: 10px; align-items: baseline; justify-content: space-between; }
+.suggest li[aria-selected="true"], .suggest li:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.suggest .en { font-size: 12px; color: var(--muted); text-align: right; }
+.suggest .hint { cursor: default; color: var(--muted); font-size: 13px; }
+.add-foot { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 13px; color: var(--muted); }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; font-size: 13px; }
+.bulk { display: flex; flex-direction: column; gap: 8px; }
+.bulk .lbl { font-size: 12px; color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 20px; }
+.stack.tight { gap: 10px; }
+#rows { list-style: none; margin: 0; padding: 0; }
+
+/* 絞り込み */
+.filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; font-size: 14px; }
+.filters label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.filters select { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 6px 8px; max-width: 46vw; }
+.filters .count { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+/* 一覧 */
+.list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.row, .head {
+  display: grid; align-items: center; gap: 4px 12px; padding: 8px 12px;
+  grid-template-columns: 26px minmax(200px, 2.3fr) 68px 128px minmax(96px, 1fr) minmax(110px, 1.5fr) 92px 30px;
+  grid-template-areas: "chk name pri price deck memo shop del";
+}
+.head { font-size: 12px; color: var(--muted); letter-spacing: .08em; padding-block: 8px; border-bottom: 1px solid var(--line); }
+.row + .row { border-top: 1px solid var(--line); }
+.c-chk { grid-area: chk; display: flex; } .c-name { grid-area: name; } .c-pri { grid-area: pri; } .c-price { grid-area: price; }
+.c-deck { grid-area: deck; } .c-memo { grid-area: memo; } .c-shop { grid-area: shop; } .c-del { grid-area: del; }
+.row > *, .head > * { min-width: 0; }
+.c-chk input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; margin: 0; }
+.c-name { display: flex; gap: 10px; align-items: center; }
+.thumb { flex: none; width: 34px; height: 47px; border-radius: 3px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; display: block; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.names { min-width: 0; display: flex; flex-direction: column; }
+.n1 { font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.n2 { font-size: 12px; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; }
+.pips { display: inline-flex; gap: 3px; }
+.pip { width: 9px; height: 9px; border-radius: 50%; display: inline-block; border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); }
+.pip.W { background: var(--mana-w); } .pip.U { background: var(--mana-u); } .pip.B { background: var(--mana-b); }
+.pip.R { background: var(--mana-r); } .pip.G { background: var(--mana-g); } .pip.C { background: var(--mana-c); }
+.pri {
+  appearance: none; -webkit-appearance: none; border: 1px solid currentColor; border-radius: 999px; background: transparent;
+  padding: 2px 12px; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center; text-align-last: center; width: 52px;
+}
+.pri.p1 { color: var(--hi); background: color-mix(in srgb, var(--hi) 12%, transparent); }
+.pri.p2 { color: var(--mid); background: color-mix(in srgb, var(--mid) 12%, transparent); }
+.pri.p3 { color: var(--lo); }
+.pri option { color: var(--ink); background: var(--surface); }
+.c-price { text-align: right; font-variant-numeric: tabular-nums; }
+.head .c-price { text-align: right; }
+.yen { font-family: var(--font-data); font-weight: 500; font-size: 16px; }
+.usd { font-family: var(--font-data); font-size: 11px; color: var(--muted); display: block; line-height: 1.3; }
+.state { font-size: 12px; color: var(--muted); }
+.state.bad { color: var(--warn); }
+.cell-in { width: 100%; border: 1px solid transparent; border-radius: 4px; background: transparent; padding: 5px 6px; min-height: 32px; }
+.cell-in:hover { border-color: var(--line); }
+.cell-in:focus { border-color: var(--accent); background: var(--bg); outline: none; }
+.cell-in::placeholder { color: var(--muted); opacity: .65; }
+.shop { font-size: 13px; white-space: nowrap; }
+.del { border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; padding: 4px 6px; border-radius: 4px; }
+.del:hover { color: var(--hi); background: color-mix(in srgb, var(--hi) 10%, transparent); }
+.row.is-bought .n1 { text-decoration: line-through; }
+.row.is-bought .c-name, .row.is-bought .c-price, .row.is-bought .c-pri { opacity: .5; }
+.empty { padding: 36px 20px; text-align: center; color: var(--muted); }
+.empty strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
+.credit { font-size: 12px; color: var(--muted); }
+
+/* お知らせ */
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 50;
+  background: var(--ink); color: var(--bg); border-radius: var(--radius); padding: 10px 14px; display: flex; gap: 14px; align-items: center;
+  max-width: calc(100vw - 32px); font-size: 14px; box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.toast button { background: none; border: 0; color: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 0; white-space: nowrap; }
+
+/* 同期コードの画面 */
+dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); padding: 0; width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
+dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
+.dlg { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.dlg h2 { font-family: var(--font-display); font-size: 20px; margin: 0; text-wrap: balance; }
+.dlg p { margin: 0; }
+.dlg .note, .dlg .prev { font-size: 13px; color: var(--muted); }
+.dlg .join { border-top: 1px solid var(--line); padding-top: 14px; gap: 8px; }
+.dlg .foot { display: flex; justify-content: flex-end; }
+.coderow { display: flex; gap: 8px; flex-wrap: wrap; }
+.coderow .in { flex: 1 1 240px; min-width: 0; }
+.in.code, .mono { font-family: var(--font-data); letter-spacing: .04em; }
+.carry { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.carry input { margin-top: 5px; accent-color: var(--accent); }
+.err { color: var(--hi); font-size: 14px; }
+.prev { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; overflow-wrap: anywhere; }
+
+@media (max-width: 860px) {
+  .add-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .add-grid .f-name, .add-grid .f-memo { grid-column: 1 / -1; }
+  .add-grid .f-go { grid-column: 1 / -1; }
+  .add-grid .f-go .btn { width: 100%; min-height: 44px; }
+  .rate { margin-left: 0; text-align: left; align-items: flex-start; }
+  .head { display: none; }
+  .row {
+    grid-template-columns: 26px minmax(0, 1fr) auto 30px; align-items: start; padding: 12px;
+    grid-template-areas:
+      "chk name name del"
+      "chk price pri pri"
+      "chk deck deck deck"
+      "chk memo memo memo"
+      "chk shop shop shop";
+  }
+  .c-chk { padding-top: 12px; }
+  .c-pri { justify-self: end; }
+  .c-price { text-align: left; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .usd { display: inline; }
+  .cell-in { border-color: var(--line); background: var(--bg); min-height: 38px; }
+  .c-shop { padding-top: 2px; }
+  .total .yen { font-size: 32px; }
+  .filters .count { margin-left: 0; flex-basis: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast { animation: rise .18s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>MTG購入リスト</h1>
+    <div class="sync" id="sync"></div>
+  </header>
+
+  <div class="notice" id="alert" hidden><p id="alertText"></p></div>
+
+  <main id="app" class="stack" hidden>
+      <section class="summary" aria-label="合計">
+        <div class="total">
+          <div class="label" id="totalLabel">未購入の合計</div>
+          <div class="yen" id="totalYen">—</div>
+          <div class="sub" id="totalSub"></div>
+        </div>
+        <div class="split" id="split"></div>
+        <div class="rate">
+          <span id="rateText">為替レートを取得中…</span>
+          <button class="btn small" id="refresh" type="button">価格を更新</button>
+        </div>
+      </section>
+
+      <form class="add" id="addForm" autocomplete="off">
+        <div class="add-grid">
+          <div class="field f-name">
+            <label for="fName">カード名(日本語でも英語でも)</label>
+            <input class="in" id="fName" type="text" placeholder="例: 稲妻 / Sol Ring" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest" required>
+            <ul class="suggest" id="suggest" role="listbox" hidden></ul>
+          </div>
+          <div class="field">
+            <span class="lbl" id="priLbl">重要度</span>
+            <div class="seg" role="radiogroup" aria-labelledby="priLbl">
+              <label><input type="radio" name="pri" id="fPri1" value="1"><span>高</span></label>
+              <label><input type="radio" name="pri" id="fPri2" value="2" checked><span>中</span></label>
+              <label><input type="radio" name="pri" id="fPri3" value="3"><span>低</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="fDeck">入れる予定のデッキ</label>
+            <input class="in" id="fDeck" type="text" list="decks" maxlength="60" placeholder="例: セシル">
+          </div>
+          <div class="field f-memo">
+            <label for="fMemo">メモ</label>
+            <input class="in" id="fMemo" type="text" maxlength="300" placeholder="例: 日本語版がほしい">
+          </div>
+          <div class="field f-go">
+            <button class="btn primary" id="addBtn" type="submit">追加</button>
+          </div>
+        </div>
+        <div class="add-foot">
+          <span>追加すると金額が自動で入ります。</span>
+          <button class="linkbtn" id="bulkToggle" type="button" aria-expanded="false" aria-controls="bulk">まとめて追加する</button>
+        </div>
+        <div class="bulk" id="bulk" hidden>
+          <label for="fBulk" class="lbl">1行に1枚。メモ帳やExcelの列をそのまま貼り付けられます。重要度とデッキは上の選択が全部に付きます。</label>
+          <textarea class="in" id="fBulk" placeholder="Sol Ring&#10;稲妻&#10;1 Rhystic Study"></textarea>
+          <div><button class="btn" id="bulkGo" type="button">この一覧を追加</button></div>
+        </div>
+      </form>
+      <datalist id="decks"></datalist>
+
+      <section class="stack tight" aria-label="購入リスト">
+        <div class="filters">
+          <label>デッキ <select id="uDeck"></select></label>
+          <label>重要度
+            <select id="uPri">
+              <option value="">すべて</option><option value="1">高</option><option value="2">中</option><option value="3">低</option>
+            </select>
+          </label>
+          <label>並び順
+            <select id="uSort">
+              <option value="pri">重要度が高い順</option>
+              <option value="priceDesc">金額が高い順</option>
+              <option value="priceAsc">金額が安い順</option>
+              <option value="new">追加が新しい順</option>
+              <option value="deck">デッキ順</option>
+            </select>
+          </label>
+          <label><input type="checkbox" id="uBought"> 購入済みも表示</label>
+          <span class="count" id="count"></span>
+        </div>
+        <div class="list">
+          <div class="head" aria-hidden="true">
+            <span class="c-chk"></span><span class="c-name">カード名</span><span class="c-pri">重要度</span><span class="c-price">金額(目安)</span>
+            <span class="c-deck">デッキ</span><span class="c-memo">メモ</span><span class="c-shop">晴れる屋</span><span class="c-del"></span>
+          </div>
+          <ul id="rows"></ul>
+        </div>
+        <p class="credit">金額はScryfallのドル価格(いちばん安い版)を当日の為替レートで円に換算した目安です。実際の値段は晴れる屋のリンクで確認してください。</p>
+      </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastText"></span><button id="toastAct" type="button" hidden></button></div>
+
+<dialog id="syncDlg" aria-labelledby="syncTitle">
+  <div class="dlg">
+    <h2 id="syncTitle">別の端末でも同じリストを使う</h2>
+    <p>このリストは、同期コードを入れた端末だけが開けます。スマホやもう1台のPCでこのページを開き、下のコードを入力すると同じリストになります。</p>
+    <div class="field">
+      <label for="myCode">この端末の同期コード</label>
+      <div class="coderow">
+        <input class="in code" id="myCode" type="text" readonly>
+        <button class="btn" id="copyCode" type="button">コピー</button>
+      </div>
+    </div>
+    <p class="note">コードは他の人に教えないでください。知っている人はこのリストを見られます。なくすと新しい端末に引き継げないので、どこかに控えておいてください。</p>
+    <form id="joinForm" class="field join">
+      <label for="joinCode">別の端末のコードを入力して、そのリストに切り替える</label>
+      <div class="coderow">
+        <input class="in code" id="joinCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXX-XXXXX-XXXXX-XXXXX">
+        <button class="btn primary" id="joinGo" type="submit">切り替える</button>
+      </div>
+      <label class="carry" id="carryWrap" hidden><input type="checkbox" id="carry" checked> <span id="carryText"></span></label>
+      <p class="err" id="joinErr" role="alert" hidden></p>
+    </form>
+    <div class="prev" id="prevWrap" hidden>
+      <span>切り替える前のコード: <span class="mono" id="prevCode"></span></span>
+      <button class="linkbtn" id="prevGo" type="button">このコードに戻す</button>
+    </div>
+    <div class="foot"><button class="btn" id="syncClose" type="button">閉じる</button></div>
+  </div>
+</dialog>
+
+
+<script>
+'use strict';
+/* =====================================================================
+   同期の設定
+   Firebaseコンソールで表示される firebaseConfig の中身を、下の null と置き換えます。
+   例: const FIREBASE_CONFIG = { apiKey: "...", authDomain: "...", projectId: "...", appId: "..." };
+   null のままなら、この端末のブラウザだけに保存します。
+   設定すると、リストは端末の中で暗号化してから保存され、同じ同期コードを入れた端末で同じ内容になります。
+   ログインは使わないので、名前やメールアドレスは集まりません。
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCxIpqOB9YFgvjD9lqnM-1JGDWuIc4ymt4",
+  authDomain: "mtglist-ca798.firebaseapp.com",
+  projectId: "mtglist-ca798",
+  storageBucket: "mtglist-ca798.firebasestorage.app",
+  messagingSenderId: "188913365398",
+  appId: "1:188913365398:web:80649670e6fb007af86db7"
+};
+const FIREBASE_VERSION = '10.12.2';
+
+const SF = 'https://api.scryfall.com';
+const RATE_URL = 'https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY';
+const HARERUYA = 'https://www.hareruyamtg.com/ja/products/search?product=';
+const DAY = 864e5;
+const LS = { cards: 'mtgbuy.cards.v1', rate: 'mtgbuy.rate.v1', ui: 'mtgbuy.ui.v1', code: 'mtgbuy.code.v1', prev: 'mtgbuy.prevcode.v1' };
+const PRICE_KEY = { nonfoil: 'usd', foil: 'usd_foil', etched: 'usd_etched' };
+const NO_DECK = '\u0000none';
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 保存できない環境では何もしない */ } };
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
+const isJa = s => /[^\u0000-\u024f]/.test(s);
+const num = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
+const yenFmt = n => '¥' + Math.round(n).toLocaleString('ja-JP');
+
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k === 'dataset') Object.assign(el.dataset, v);
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k !== 'list' && k in el) el[k] = v;
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+
+const state = {
+  cards: [],
+  rate: null, rateDate: null,
+  mode: 'local',            // 'local' | 'cloud'
+  col: null, unsub: null, loaded: true,
+  ui: Object.assign({ deck: '', pri: '', sort: 'pri', showBought: false }, lsGet(LS.ui, {})),
+  sel: null,                // 候補から選んだカード {name, nameJa}
+  refreshing: false,
+  autoRefreshed: false,
+};
+
+/* ---------- 保存 ---------- */
+function clean(card) { const o = {}; for (const [k, v] of Object.entries(card)) o[k] = v === undefined ? null : v; return o; }
+function localCards() { const a = lsGet(LS.cards, []); return Array.isArray(a) ? a : []; }
+
+async function persist(card) {
+  card = clean(card);
+  const i = state.cards.findIndex(c => c.id === card.id);
+  if (i >= 0) state.cards[i] = card; else state.cards.push(card);
+  if (state.mode === 'cloud') {
+    try { await state.col.doc(card.id).set(await seal(card)); } catch (e) { alertBar('保存できませんでした。通信状態を確認してください。'); console.error(e); }
+  } else {
+    lsSet(LS.cards, state.cards);
+  }
+  render();
+}
+async function persistMany(cards) {
+  if (!cards.length) return;
+  cards = cards.map(clean);
+  for (const card of cards) {
+    const i = state.cards.findIndex(c => c.id === card.id);
+    if (i >= 0) state.cards[i] = card; else state.cards.push(card);
+  }
+  if (state.mode === 'cloud') {
+    try {
+      const col = state.col;
+      for (let i = 0; i < cards.length; i += 400) {
+        const chunk = cards.slice(i, i + 400);
+        const sealed = await Promise.all(chunk.map(seal));
+        const batch = cloud.db.batch();
+        chunk.forEach((c, n) => batch.set(col.doc(c.id), sealed[n]));
+        await batch.commit();
+      }
+    } catch (e) { alertBar('保存できませんでした。通信状態を確認してください。'); console.error(e); }
+  } else {
+    lsSet(LS.cards, state.cards);
+  }
+  render();
+}
+async function removeCard(id) {
+  state.cards = state.cards.filter(c => c.id !== id);
+  if (state.mode === 'cloud') {
+    try { await state.col.doc(id).delete(); } catch (e) { alertBar('削除できませんでした。通信状態を確認してください。'); console.error(e); }
+  } else {
+    lsSet(LS.cards, state.cards);
+  }
+  render();
+}
+function patch(id, changes) {
+  const c = state.cards.find(x => x.id === id);
+  if (c) return persist(Object.assign({}, c, changes));
+}
+
+/* ---------- Scryfall ---------- */
+function makeQueue(gap) {
+  let last = 0, chain = Promise.resolve();
+  return fn => {
+    const run = chain.then(async () => {
+      const wait = last + gap - Date.now();
+      if (wait > 0) await sleep(wait);
+      try { return await fn(); } finally { last = Date.now(); }
+    });
+    chain = run.catch(() => {});
+    return run;
+  };
+}
+const searchQ = makeQueue(600);   // 検索系は1秒に2回まで
+const lightQ = makeQueue(150);    // 候補表示は1秒に10回まで
+
+function sfFetch(path, init, queue = searchQ) {
+  return queue(async () => {
+    const r = await fetch(SF + path, Object.assign({ headers: { Accept: 'application/json' } }, init));
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('Scryfall ' + r.status);
+    return r.json();
+  });
+}
+const q = s => encodeURIComponent(s);
+const bare = s => s.replace(/["“”]/g, '').trim();
+
+function jaNameOf(card) {
+  const n = card.printed_name || (card.card_faces || []).map(f => f.printed_name || f.name).join(' // ');
+  return n && isJa(n) ? n : null;
+}
+function fieldsOf(card) {
+  const face = (card.card_faces || [])[0] || {};
+  return {
+    name: card.name,
+    sid: card.id,
+    set: (card.set || '').toUpperCase(),
+    uri: card.scryfall_uri || null,
+    img: (card.image_uris && card.image_uris.small) || (face.image_uris && face.image_uris.small) || null,
+    colors: card.color_identity || [],
+  };
+}
+
+// 日本語名で探す。完全一致、前方一致、短い名前の順に並べる。
+async function searchJa(text) {
+  const t = bare(text);
+  const res = await sfFetch('/cards/search?unique=cards&q=' + q(t + ' lang:ja'));
+  const seen = new Set();
+  const hits = [];
+  for (const c of (res && res.data) || []) {
+    const ja = jaNameOf(c);
+    if (!ja || seen.has(c.name)) continue;
+    seen.add(c.name);
+    hits.push({ name: c.name, nameJa: ja });
+  }
+  const rank = x => (x.nameJa === t ? 0 : x.nameJa.startsWith(t) ? 1 : 2);
+  hits.sort((a, b) => rank(a) - rank(b) || a.nameJa.length - b.nameJa.length || a.nameJa.localeCompare(b.nameJa, 'ja'));
+  return hits;
+}
+async function autocompleteEn(text) {
+  const res = await sfFetch('/cards/autocomplete?q=' + q(text), undefined, lightQ);
+  return ((res && res.data) || []).slice(0, 8).map(name => ({ name, nameJa: null }));
+}
+
+// 英語名から、いちばん安い版とその価格を返す。
+async function resolvePrints(name) {
+  const res = await sfFetch('/cards/search?unique=prints&q=' + q('!"' + bare(name) + '" game:paper -is:oversized -border:gold'));
+  const all = (res && res.data) || [];
+  const exact = all.filter(c => c.name.toLowerCase() === name.toLowerCase());
+  const prints = exact.length ? exact : all;
+  if (!prints.length) return null;
+  let best = null;
+  for (const c of prints) {
+    const p = num(c.prices && c.prices.usd);
+    if (p != null && (!best || p < best.usd)) best = { card: c, usd: p, finish: 'nonfoil' };
+  }
+  if (!best) {
+    for (const c of prints) for (const finish of ['foil', 'etched']) {
+      const p = num(c.prices && c.prices[PRICE_KEY[finish]]);
+      if (p != null && (!best || p < best.usd)) best = { card: c, usd: p, finish };
+    }
+  }
+  return best || { card: prints[0], usd: null, finish: 'nonfoil' };
+}
+async function lookupJaName(name) {
+  const res = await sfFetch('/cards/search?unique=prints&q=' + q('!"' + bare(name) + '" lang:ja'));
+  for (const c of (res && res.data) || []) {
+    if (c.name.toLowerCase() !== name.toLowerCase()) continue;
+    const ja = jaNameOf(c);
+    if (ja) return ja;
+  }
+  return null;
+}
+
+// 入力からカードを特定し、価格まで埋める。
+const inflight = new Set();
+async function resolveCard(card) {
+  if (inflight.has(card.id)) return;
+  inflight.add(card.id);
+  try {
+    let name = card.resolved ? card.name : null;
+    let nameJa = card.nameJa || null;
+    if (!name) {
+      const text = card.query || card.name;
+      if (isJa(text)) {
+        const hits = await searchJa(text);
+        if (!hits.length) return patchIfExists(card.id, { status: 'notfound' });
+        name = hits[0].name; nameJa = hits[0].nameJa;
+      } else {
+        const found = await sfFetch('/cards/named?fuzzy=' + q(bare(text)));
+        if (!found) return patchIfExists(card.id, { status: 'notfound' });
+        name = found.name;
+      }
+    }
+    const best = await resolvePrints(name);
+    if (!best) return patchIfExists(card.id, { name, nameJa, resolved: true, status: 'notfound' });
+    if (!nameJa) { try { nameJa = await lookupJaName(name); } catch { nameJa = null; } }
+    return patchIfExists(card.id, Object.assign(fieldsOf(best.card), {
+      nameJa, resolved: true, usd: best.usd, finish: best.finish,
+      status: best.usd == null ? 'noprice' : 'ok', priceAt: Date.now(),
+    }));
+  } catch (e) {
+    console.error(e);
+    return patchIfExists(card.id, { status: 'error' });
+  } finally { inflight.delete(card.id); }
+}
+function patchIfExists(id, changes) { if (state.cards.some(c => c.id === id)) return patch(id, changes); }
+
+async function addCard({ text, sel, priority, deck, memo }) {
+  const card = {
+    id: newId(),
+    name: sel ? sel.name : text,
+    nameJa: sel ? sel.nameJa : (isJa(text) ? text : null),
+    query: text, resolved: !!sel,
+    priority, deck: deck || '', memo: memo || '', bought: false,
+    usd: null, finish: 'nonfoil', set: '', sid: null, uri: null, img: null, colors: [],
+    status: 'pending', priceAt: null, createdAt: Date.now(),
+  };
+  await persist(card);
+  return resolveCard(card);
+}
+
+// 保存してある版のIDでまとめて価格を取り直す(75枚ごとに1回の通信)。
+async function refreshPrices(force) {
+  if (state.refreshing) return;
+  const now = Date.now();
+  const stuck = state.cards.filter(c => !inflight.has(c.id) && ((c.status === 'pending' && now - (c.createdAt || 0) > 30000) || (force && c.status === 'error')));
+  const due = state.cards.filter(c => c.sid && !c.bought && (force || !c.priceAt || now - c.priceAt > DAY));
+  if (!stuck.length && !due.length) { if (force) toast('価格は最新です'); return; }
+  state.refreshing = true; renderSummary();
+  let failed = false;
+  try {
+    for (let i = 0; i < due.length; i += 75) {
+      const chunk = due.slice(i, i + 75);
+      const res = await sfFetch('/cards/collection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ identifiers: chunk.map(c => ({ id: c.sid })) }),
+      });
+      const byId = new Map(((res && res.data) || []).map(c => [c.id, c]));
+      const changed = [];
+      for (const c of chunk) {
+        const fresh = byId.get(c.sid);
+        if (!fresh || !state.cards.some(x => x.id === c.id)) continue;
+        const cur = state.cards.find(x => x.id === c.id);
+        let usd = num(fresh.prices && fresh.prices[PRICE_KEY[cur.finish] || 'usd']);
+        let finish = cur.finish;
+        if (usd == null) for (const f of ['nonfoil', 'foil', 'etched']) { const p = num(fresh.prices && fresh.prices[PRICE_KEY[f]]); if (p != null) { usd = p; finish = f; break; } }
+        changed.push(Object.assign({}, cur, { usd: usd == null ? cur.usd : usd, finish, status: (usd == null ? cur.usd : usd) == null ? 'noprice' : 'ok', priceAt: Date.now() }));
+      }
+      await persistMany(changed);
+    }
+  } catch (e) { console.error(e); failed = true; }
+  for (const c of stuck) await resolveCard(Object.assign({}, c, { status: 'pending' }));
+  state.refreshing = false; renderSummary();
+  if (force) toast(failed ? '価格を更新できませんでした。少し待ってからもう一度試してください。' : '価格を更新しました');
+}
+
+/* ---------- 為替 ---------- */
+async function loadRate() {
+  const cached = lsGet(LS.rate, null);
+  if (cached && cached.rate) { state.rate = cached.rate; state.rateDate = cached.date; }
+  if (cached && Date.now() - cached.at < DAY / 2) return;
+  try {
+    const r = await fetch(RATE_URL);
+    if (!r.ok) throw new Error('rate ' + r.status);
+    const j = await r.json();
+    const rate = j && j.rates && Number(j.rates.JPY);
+    if (!rate) throw new Error('rate missing');
+    state.rate = rate; state.rateDate = j.date || null;
+    lsSet(LS.rate, { rate, date: state.rateDate, at: Date.now() });
+  } catch (e) { console.error(e); }
+}
+const priceJpy = c => (c.usd != null && state.rate ? c.usd * state.rate : null);
+
+/* ---------- 表示 ---------- */
+function decksInUse() { return [...new Set(state.cards.map(c => (c.deck || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')); }
+
+function visibleCards() {
+  const { deck, pri, sort, showBought } = state.ui;
+  let list = state.cards.filter(c =>
+    (showBought || !c.bought) &&
+    (!pri || String(c.priority) === pri) &&
+    (!deck || (deck === NO_DECK ? !(c.deck || '').trim() : (c.deck || '').trim() === deck)));
+  const price = c => { const p = priceJpy(c); return p == null ? (c.usd == null ? -1 : c.usd) : p; };
+  const cmp = {
+    pri: (a, b) => a.priority - b.priority || price(b) - price(a),
+    priceDesc: (a, b) => price(b) - price(a),
+    priceAsc: (a, b) => (price(a) < 0) - (price(b) < 0) || price(a) - price(b),
+    new: (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+    deck: (a, b) => (a.deck || '￿').localeCompare(b.deck || '￿', 'ja') || a.priority - b.priority,
+  }[sort] || (() => 0);
+  return list.sort((a, b) => Number(a.bought) - Number(b.bought) || cmp(a, b) || (a.createdAt || 0) - (b.createdAt || 0));
+}
+
+function renderSummary() {
+  const list = visibleCards().filter(c => !c.bought);
+  const priced = list.filter(c => c.usd != null);
+  const filtered = state.ui.deck || state.ui.pri;
+  $('totalLabel').textContent = filtered ? '表示中の未購入の合計' : '未購入の合計';
+  // 行ごとに円へ丸めた金額を足すので、一覧の数字を足した結果と一致する
+  const money = arr => (state.rate
+    ? yenFmt(arr.reduce((s, c) => s + Math.round(c.usd * state.rate), 0))
+    : '$' + arr.reduce((s, c) => s + c.usd, 0).toFixed(2));
+  $('totalYen').textContent = priced.length ? money(priced) : (list.length ? '—' : '¥0');
+  const missing = list.length - priced.length;
+  $('totalSub').textContent = `${list.length}枚` + (missing ? `(うち${missing}枚は金額なし)` : '');
+  const split = $('split'); split.replaceChildren();
+  if (!state.ui.pri) {
+    for (const p of [1, 2, 3]) {
+      const arr = priced.filter(c => c.priority === p);
+      if (!arr.length) continue;
+      split.append(h('div', { class: 'p' + p }, h('div', { class: 'label', text: '重要度 ' + ['', '高', '中', '低'][p] }), h('div', { class: 'v', text: money(arr) })));
+    }
+  }
+  $('rateText').replaceChildren(...(state.rate
+    ? ['1ドル = ', h('span', { class: 'mono', text: state.rate.toFixed(2) }), '円' + (state.rateDate ? `(${state.rateDate.slice(5).replace('-', '/')}のレート)` : '')]
+    : ['為替レートを取得できていません。金額はドルで表示しています。']));
+  $('refresh').disabled = state.refreshing;
+  $('refresh').textContent = state.refreshing ? '更新中…' : '価格を更新';
+}
+
+function renderFilters() {
+  const decks = decksInUse();
+  const dl = $('decks'); dl.replaceChildren(...decks.map(d => h('option', { value: d })));
+  const sel = $('uDeck');
+  if (state.ui.deck && state.ui.deck !== NO_DECK && !decks.includes(state.ui.deck)) state.ui.deck = '';
+  sel.replaceChildren(h('option', { value: '', text: 'すべて' }), ...decks.map(d => h('option', { value: d, text: d })), h('option', { value: NO_DECK, text: '未設定' }));
+  sel.value = state.ui.deck;
+  $('uPri').value = state.ui.pri;
+  $('uSort').value = state.ui.sort;
+  $('uBought').checked = !!state.ui.showBought;
+}
+
+function priceCell(c) {
+  if (c.status === 'pending') return h('div', { class: 'c-price' }, h('span', { class: 'state', text: '金額を取得中…' }));
+  if (c.status === 'notfound') return h('div', { class: 'c-price' }, h('span', { class: 'state bad', text: '見つかりません' }));
+  if (c.status === 'error') return h('div', { class: 'c-price' }, h('span', { class: 'state bad', text: '取得できませんでした ' }),
+    h('button', { class: 'linkbtn', type: 'button', text: '再取得', onclick: () => { patch(c.id, { status: 'pending' }); resolveCard(Object.assign({}, c, { status: 'pending' })); } }));
+  if (c.usd == null) return h('div', { class: 'c-price' }, h('span', { class: 'state', text: '価格データなし' }));
+  const jpy = priceJpy(c);
+  const sub = '$' + c.usd.toFixed(2) + (c.set ? ' · ' + c.set : '') + (c.finish === 'foil' ? ' Foil' : c.finish === 'etched' ? ' Etched' : '');
+  return h('div', { class: 'c-price' }, h('span', { class: 'yen', text: jpy == null ? '$' + c.usd.toFixed(2) : yenFmt(jpy) }), jpy == null ? null : h('span', { class: 'usd', text: sub }));
+}
+
+function rowEl(c) {
+  const main = c.nameJa || c.name;
+  const front = (c.name || '').split(' // ')[0];
+  const colors = (c.colors && c.colors.length) ? c.colors : (c.resolved && c.sid ? ['C'] : []);
+  const colorWord = { W: '白', U: '青', B: '黒', R: '赤', G: '緑', C: '無色' };
+  const thumb = h(c.uri ? 'a' : 'span', { class: 'thumb', href: c.uri || null, target: c.uri ? '_blank' : null, rel: c.uri ? 'noopener' : null, title: c.uri ? 'Scryfallでカードを見る' : null },
+    c.img ? h('img', { src: c.img, alt: '', loading: 'lazy' }) : null);
+  return h('li', { class: 'row' + (c.bought ? ' is-bought' : ''), dataset: { id: c.id } },
+    h('label', { class: 'c-chk', title: '購入済みにする' },
+      h('input', { type: 'checkbox', checked: !!c.bought, 'aria-label': main + ' を購入済みにする', onchange: e => patch(c.id, { bought: e.target.checked }) })),
+    h('div', { class: 'c-name' }, thumb,
+      h('div', { class: 'names' },
+        h('span', { class: 'n1', text: main }),
+        h('span', { class: 'n2' },
+          c.nameJa && c.name !== c.nameJa ? h('span', { text: c.name }) : null,
+          colors.length ? h('span', { class: 'pips', title: '固有色: ' + colors.map(x => colorWord[x] || x).join('') }, colors.map(x => h('i', { class: 'pip ' + x }))) : null))),
+    h('div', { class: 'c-pri' },
+      h('select', { class: 'pri p' + c.priority, 'aria-label': main + ' の重要度', dataset: { fk: c.id + ':pri' }, onchange: e => patch(c.id, { priority: Number(e.target.value) }) },
+        [1, 2, 3].map(p => h('option', { value: String(p), text: ['', '高', '中', '低'][p], selected: c.priority === p })))),
+    priceCell(c),
+    h('div', { class: 'c-deck' },
+      h('input', { class: 'cell-in', type: 'text', list: 'decks', maxLength: 60, value: c.deck || '', placeholder: 'デッキ未設定', 'aria-label': main + ' を入れるデッキ', dataset: { fk: c.id + ':deck' },
+        onchange: e => patch(c.id, { deck: e.target.value.trim() }) })),
+    h('div', { class: 'c-memo' },
+      h('input', { class: 'cell-in', type: 'text', maxLength: 300, value: c.memo || '', placeholder: 'メモ', 'aria-label': main + ' のメモ', dataset: { fk: c.id + ':memo' },
+        onchange: e => patch(c.id, { memo: e.target.value }) })),
+    h('div', { class: 'c-shop' },
+      front && c.status !== 'notfound' ? h('a', { class: 'shop', href: HARERUYA + q(front), target: '_blank', rel: 'noopener', text: '晴れる屋で見る' }) : null),
+    h('div', { class: 'c-del' },
+      h('button', { class: 'del', type: 'button', 'aria-label': main + ' を削除', title: '削除', text: '×', onclick: () => deleteWithUndo(c) })));
+}
+
+function renderList() {
+  const rows = $('rows');
+  // 入力中の欄があれば、描き直したあとに戻す
+  const act = document.activeElement;
+  const keep = act && rows.contains(act) && act.dataset.fk ? { fk: act.dataset.fk, value: act.value, s: act.selectionStart, e: act.selectionEnd } : null;
+  const list = visibleCards();
+  if (!list.length) {
+    const none = !state.cards.length;
+    if (!state.loaded) rows.replaceChildren(h('li', { class: 'empty' }, h('strong', { text: 'リストを読み込み中…' })));
+    else rows.replaceChildren(h('li', { class: 'empty' },
+      h('strong', { text: none ? 'まだカードがありません' : '条件に合うカードがありません' }),
+      none ? '上の欄にカード名を入れて「追加」を押すと、金額と晴れる屋へのリンクが自動で入ります。' : '絞り込みを変えるか、「購入済みも表示」にチェックを入れてください。'));
+  } else {
+    rows.replaceChildren(...list.map(rowEl));
+  }
+  if (keep) {
+    const el = rows.querySelector(`[data-fk="${CSS.escape(keep.fk)}"]`);
+    if (el) { if (el.tagName === 'INPUT') { el.value = keep.value; } el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch { /* select要素などは対象外 */ } }
+  }
+  const total = state.cards.length, bought = state.cards.filter(c => c.bought).length;
+  $('count').textContent = total ? `${list.length}件を表示(全${total}件、購入済み${bought}件)` : '';
+}
+
+function renderSync() {
+  const el = $('sync'); el.replaceChildren();
+  if (state.mode === 'cloud') {
+    el.append(h('span', { class: 'dot on' }), '同期中',
+      h('button', { class: 'btn small', type: 'button', id: 'syncOpen', text: '別の端末でも使う', onclick: openSync }));
+  } else {
+    el.append(h('span', { class: 'dot' }), 'この端末だけに保存中');
+  }
+}
+
+function render() { renderFilters(); renderSummary(); renderList(); }
+function saveUi() { lsSet(LS.ui, state.ui); }
+
+/* ---------- お知らせ ---------- */
+let toastTimer = null;
+function toast(text, action, ms = 3200) {
+  $('toastText').textContent = text;
+  const b = $('toastAct');
+  b.hidden = !action;
+  if (action) { b.textContent = action.label; b.onclick = () => { hideToast(); action.run(); }; }
+  $('toast').hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, action ? 7000 : ms);
+}
+function hideToast() { $('toast').hidden = true; }
+function alertBar(text) { $('alertText').textContent = text; $('alert').hidden = !text; }
+function deleteWithUndo(card) {
+  removeCard(card.id);
+  toast(`「${card.nameJa || card.name}」を削除しました`, { label: '元に戻す', run: () => persist(card) });
+}
+
+/* ---------- カード名の候補 ---------- */
+const sug = { items: [], active: -1, token: 0, composing: false, timer: null };
+function closeSuggest() { $('suggest').hidden = true; $('fName').setAttribute('aria-expanded', 'false'); sug.items = []; sug.active = -1; }
+function paintSuggest(hint) {
+  const ul = $('suggest');
+  if (!sug.items.length && !hint) return closeSuggest();
+  ul.replaceChildren(...(sug.items.length
+    ? sug.items.map((it, i) => h('li', { role: 'option', id: 'sug' + i, 'aria-selected': String(i === sug.active), onmousedown: e => { e.preventDefault(); chooseSuggest(i); } },
+        h('span', { text: it.nameJa || it.name }), it.nameJa ? h('span', { class: 'en', text: it.name }) : null))
+    : [h('li', { class: 'hint', text: hint })]));
+  ul.hidden = false;
+  $('fName').setAttribute('aria-expanded', 'true');
+}
+function chooseSuggest(i) {
+  const it = sug.items[i]; if (!it) return;
+  state.sel = it;
+  $('fName').value = it.nameJa || it.name;
+  closeSuggest();
+}
+function onNameInput() {
+  state.sel = null;
+  clearTimeout(sug.timer);
+  const text = $('fName').value.trim();
+  if (sug.composing) return;
+  if (text.length < 2 && !(isJa(text) && text.length >= 1)) return closeSuggest();
+  const token = ++sug.token;
+  sug.timer = setTimeout(async () => {
+    try {
+      const items = isJa(text) ? (await searchJa(text)).slice(0, 8) : await autocompleteEn(text);
+      if (token !== sug.token || $('fName').value.trim() !== text) return;
+      sug.items = items; sug.active = -1;
+      paintSuggest(items.length ? null : '候補が見つかりません。別の書き方を試してください。');
+    } catch { if (token === sug.token) closeSuggest(); }
+  }, 320);
+}
+
+/* ---------- 同期(同期コード + 暗号化) ----------
+   同期コードから「保存場所の名前」と「暗号の鍵」を別々に作る。
+   サーバーに置くのは暗号化した文字列だけで、鍵は端末の外に出ない。 */
+const cloud = { db: null, code: null, key: null, cache: new Map(), seq: 0, token: 0 };
+const ALPHA = '23456789ABCDEFGHJKMNPQRSTVWXYZ';        // 見間違えやすい 0 1 I L O U は使わない
+const CODE_RE = /^[2-9A-HJKMNP-TV-Z]{20}$/;
+const utf8enc = new TextEncoder(), utf8dec = new TextDecoder();
+const b64 = buf => { let t = ''; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i++) t += String.fromCharCode(u[i]); return btoa(t); };
+const unb64 = str => Uint8Array.from(atob(str), ch => ch.charCodeAt(0));
+const normCode = v => String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+const showCode = c => c.match(/.{1,5}/g).join('-');
+function newCode() {
+  let out = '';
+  while (out.length < 20) for (const x of crypto.getRandomValues(new Uint8Array(32))) if (x < 240 && out.length < 20) out += ALPHA[x % 30];
+  return out;
+}
+async function deriveKeys(code) {
+  const base = await crypto.subtle.importKey('raw', utf8enc.encode(code), 'HKDF', false, ['deriveKey', 'deriveBits']);
+  const salt = utf8enc.encode('mtg-buylist.v1');
+  const key = await crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt, info: utf8enc.encode('card-key') }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  const bits = await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt, info: utf8enc.encode('list-id') }, base, 128);
+  return { key, listId: [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('') };
+}
+async function seal(card) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: utf8enc.encode(card.id) }, cloud.key, utf8enc.encode(JSON.stringify(card)));
+  return { iv: b64(iv), ct: b64(ct) };
+}
+async function unseal(id, v) {
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(v.iv), additionalData: utf8enc.encode(id) }, cloud.key, unb64(v.ct));
+  return Object.assign(JSON.parse(utf8dec.decode(pt)), { id });
+}
+async function openAll(docs) {
+  const out = [], next = new Map();
+  for (const d of docs) {
+    const v = d.data() || {};
+    let hit = cloud.cache.get(d.id);
+    if (!hit || hit.ct !== v.ct) {
+      try { hit = { ct: v.ct, card: await unseal(d.id, v) }; } catch { continue; }   // 読めないデータは飛ばす
+    }
+    next.set(d.id, hit); out.push(hit.card);
+  }
+  cloud.cache = next;
+  return out;
+}
+function loadScript(src) {
+  return new Promise((ok, ng) => { const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => ng(new Error('load ' + src)); document.head.append(el); });
+}
+
+// 指定した同期コードのリストを開く。carry に入れたカードは、そのリストに加える。
+async function useCode(code, carry) {
+  if (state.unsub) { state.unsub(); state.unsub = null; }
+  const { key, listId } = await deriveKeys(code);
+  const token = ++cloud.token;
+  cloud.code = code; cloud.key = key; cloud.cache = new Map();
+  state.mode = 'cloud'; state.cards = []; state.loaded = false; state.autoRefreshed = false;
+  state.col = cloud.db.collection('lists').doc(listId).collection('cards');
+  let carried = !carry.length;
+  renderSync(); render();
+  state.unsub = state.col.onSnapshot(async snap => {
+    const seq = ++cloud.seq;
+    const cards = await openAll(snap.docs);
+    if (seq !== cloud.seq || token !== cloud.token) return;
+    state.cards = cards; state.loaded = true;
+    render();
+    if (!carried) {
+      carried = true;
+      const have = new Set(cards.map(c => c.id));
+      await persistMany(carry.filter(c => !have.has(c.id)));
+      try { localStorage.removeItem(LS.cards); } catch { /* 消せなくても動作は続ける */ }
+    }
+    if (!state.autoRefreshed && !(snap.metadata && snap.metadata.fromCache)) { state.autoRefreshed = true; refreshPrices(false); }
+  }, err => {
+    console.error(err);
+    if (token === cloud.token) { state.loaded = true; render(); alertBar('リストを読み込めませんでした。通信状態を確かめて、ページを開き直してください。'); }
+  });
+}
+async function startCloud() {
+  if (!(window.crypto && crypto.subtle)) { alertBar('このブラウザでは同期を使えません。今はこの端末だけに保存します。'); return false; }
+  try {
+    const base = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-`;
+    await loadScript(base + 'app-compat.js');
+    await loadScript(base + 'firestore-compat.js');
+    firebase.initializeApp(FIREBASE_CONFIG);
+    cloud.db = firebase.firestore();
+  } catch (e) {
+    console.error(e);
+    alertBar('同期サービスに接続できませんでした。今はこの端末だけに保存します。');
+    return false;
+  }
+  try { await cloud.db.enablePersistence({ synchronizeTabs: true }); } catch { /* 使えない環境では、つながっている間だけ同期する */ }
+  let code = normCode(lsGet(LS.code, ''));
+  if (!CODE_RE.test(code)) { code = newCode(); lsSet(LS.code, code); }
+  if (lsGet(LS.code, '') !== code) {
+    alertBar('このブラウザは同期コードを保存できないため、同期を使えません。プライベートブラウズをやめて開き直してください。');
+    return false;
+  }
+  await useCode(code, localCards());
+  return true;
+}
+
+function openSync() {
+  $('myCode').value = showCode(cloud.code);
+  $('joinCode').value = ''; $('joinErr').hidden = true;
+  const n = state.cards.length;
+  $('carryWrap').hidden = !n; $('carry').checked = true;
+  $('carryText').textContent = `いまこの端末に出ている${n}枚も、切り替え先のリストに加える`;
+  const prev = normCode(lsGet(LS.prev, ''));
+  $('prevWrap').hidden = !(CODE_RE.test(prev) && prev !== cloud.code);
+  $('prevCode').textContent = CODE_RE.test(prev) ? showCode(prev) : '';
+  $('syncDlg').showModal();
+}
+async function switchCode(code, carry) {
+  lsSet(LS.prev, cloud.code); lsSet(LS.code, code);
+  await useCode(code, carry);
+  $('syncDlg').close();
+  toast('リストを切り替えました。カードが出てこないときはコードを確かめてください。', null, 6000);
+}
+
+/* ---------- 起動 ---------- */
+function bind() {
+  const name = $('fName');
+  name.addEventListener('input', onNameInput);
+  name.addEventListener('compositionstart', () => { sug.composing = true; });
+  name.addEventListener('compositionend', () => { sug.composing = false; onNameInput(); });
+  name.addEventListener('blur', () => setTimeout(closeSuggest, 120));
+  name.addEventListener('keydown', e => {
+    if ($('suggest').hidden || !sug.items.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      sug.active = (sug.active + (e.key === 'ArrowDown' ? 1 : -1) + sug.items.length) % sug.items.length;
+      paintSuggest();
+      name.setAttribute('aria-activedescendant', 'sug' + sug.active);
+    } else if (e.key === 'Enter' && sug.active >= 0 && !e.isComposing) {
+      e.preventDefault(); chooseSuggest(sug.active);
+    } else if (e.key === 'Escape') closeSuggest();
+  });
+
+  const formValues = () => ({
+    priority: Number((document.querySelector('input[name="pri"]:checked') || {}).value || 2),
+    deck: $('fDeck').value.trim(), memo: $('fMemo').value.trim(),
+  });
+  $('addForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const text = name.value.trim(); if (!text) return;
+    const sel = state.sel; state.sel = null;
+    clearTimeout(sug.timer); sug.token++; closeSuggest();
+    addCard(Object.assign({ text, sel }, formValues()));
+    name.value = ''; $('fMemo').value = ''; name.focus();
+  });
+  $('bulkToggle').addEventListener('click', () => {
+    const open = $('bulk').hidden; $('bulk').hidden = !open; $('bulkToggle').setAttribute('aria-expanded', String(open));
+    if (open) $('fBulk').focus();
+  });
+  $('bulkGo').addEventListener('click', async () => {
+    const lines = $('fBulk').value.split(/\r?\n/).map(s => s.replace(/^\s*\d+\s*[xX×枚]?\s+/, '').trim()).filter(Boolean);
+    if (!lines.length) return toast('カード名を1行に1枚ずつ入れてください');
+    const batch = lines.slice(0, 100), v = formValues();
+    $('fBulk').value = lines.slice(100).join('\n');
+    toast(`${batch.length}枚を追加しています。金額は順番に入ります。` + (lines.length > 100 ? '残りは欄に残してあります。' : ''), null, 5000);
+    for (const text of batch) addCard({ text, sel: null, priority: v.priority, deck: v.deck, memo: '' });
+  });
+
+  $('uDeck').addEventListener('change', e => { state.ui.deck = e.target.value; saveUi(); render(); });
+  $('uPri').addEventListener('change', e => { state.ui.pri = e.target.value; saveUi(); render(); });
+  $('uSort').addEventListener('change', e => { state.ui.sort = e.target.value; saveUi(); render(); });
+  $('uBought').addEventListener('change', e => { state.ui.showBought = e.target.checked; saveUi(); render(); });
+  $('refresh').addEventListener('click', () => refreshPrices(true));
+
+  $('syncClose').addEventListener('click', () => $('syncDlg').close());
+  $('copyCode').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('myCode').value); toast('同期コードをコピーしました'); }
+    catch { $('myCode').select(); toast('コードを選択しました。コピーしてください'); }
+  });
+  $('joinForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const code = normCode($('joinCode').value);
+    const fail = msg => { $('joinErr').textContent = msg; $('joinErr').hidden = false; };
+    if (!CODE_RE.test(code)) return fail('同期コードは英数字20文字です。入力を確かめてください。');
+    if (code === cloud.code) return fail('この端末は、すでにこのコードのリストを使っています。');
+    switchCode(code, !$('carryWrap').hidden && $('carry').checked ? state.cards.slice() : []);
+  });
+  $('prevGo').addEventListener('click', () => switchCode(normCode(lsGet(LS.prev, '')), []));
+}
+
+async function start() {
+  bind();
+  renderSync();
+  const ratePromise = loadRate();
+  const cloudOn = FIREBASE_CONFIG ? await startCloud() : false;
+  if (!cloudOn) {
+    state.mode = 'local'; state.loaded = true;
+    state.cards = localCards();
+    renderSync(); render();
+  }
+  $('app').hidden = false;
+  await ratePromise;
+  render();
+  if (!cloudOn) refreshPrices(false);
+}
+start();
+</script>
+</body>
+</html>
