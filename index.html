@@ -21,12 +21,6 @@
   --mid: #8a5a00;
   --lo: #5b6863;
   --warn: #8a5a00;
-  --mana-w: #e6dba8;
-  --mana-u: #2a78c0;
-  --mana-b: #4a4148;
-  --mana-r: #cf3f2b;
-  --mana-g: #2c8a57;
-  --mana-c: #a5a8a4;
   --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
   --font-body: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
   --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -46,12 +40,6 @@
     --mid: #e6b450;
     --lo: #93a19b;
     --warn: #e6b450;
-    --mana-w: #efe6bd;
-    --mana-u: #4a97dc;
-    --mana-b: #8d8290;
-    --mana-r: #e6604c;
-    --mana-g: #45a871;
-    --mana-c: #8f9590;
     color-scheme: dark;
   }
 }
@@ -143,6 +131,8 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 .suggest li[aria-selected="true"], .suggest li:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .suggest .en { font-size: 12px; color: var(--muted); text-align: right; }
 .suggest .hint { cursor: default; color: var(--muted); font-size: 13px; }
+.field .err { margin: 2px 0 0; }
+.dirbtn { min-width: 5.2em; }
 .add-foot { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 13px; color: var(--muted); }
 .linkbtn { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; font-size: 13px; }
 .bulk { display: flex; flex-direction: column; gap: 8px; }
@@ -161,8 +151,8 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 .list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .row, .head {
   display: grid; align-items: center; gap: 4px 12px; padding: 8px 12px;
-  grid-template-columns: 26px minmax(200px, 2.3fr) 68px 128px minmax(96px, 1fr) minmax(110px, 1.5fr) 92px 30px;
-  grid-template-areas: "chk name pri price deck memo shop del";
+  grid-template-columns: 26px minmax(190px, 2.2fr) 92px 68px 124px minmax(90px, 1fr) minmax(100px, 1.4fr) 92px 30px;
+  grid-template-areas: "chk name color pri price deck memo shop del";
 }
 .head { font-size: 12px; color: var(--muted); letter-spacing: .08em; padding-block: 8px; border-bottom: 1px solid var(--line); }
 .row + .row { border-top: 1px solid var(--line); }
@@ -176,10 +166,12 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 .names { min-width: 0; display: flex; flex-direction: column; }
 .n1 { font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
 .n2 { font-size: 12px; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; }
-.pips { display: inline-flex; gap: 3px; }
-.pip { width: 9px; height: 9px; border-radius: 50%; display: inline-block; border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); }
-.pip.W { background: var(--mana-w); } .pip.U { background: var(--mana-u); } .pip.B { background: var(--mana-b); }
-.pip.R { background: var(--mana-r); } .pip.G { background: var(--mana-g); } .pip.C { background: var(--mana-c); }
+.c-color { grid-area: color; display: flex; gap: 2px; align-items: center; flex-wrap: wrap; }
+.mana { width: 17px; height: 17px; display: block; border-radius: 50%; font-size: 11px; color: var(--muted); }
+.th { background: none; border: 0; padding: 0; font: inherit; color: inherit; letter-spacing: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.th:hover { color: var(--ink); }
+.th[aria-pressed="true"] { color: var(--ink); font-weight: 700; }
+.th .arrow { font-family: var(--font-data); width: 1em; display: inline-block; }
 .pri {
   appearance: none; -webkit-appearance: none; border: 1px solid currentColor; border-radius: 999px; background: transparent;
   padding: 2px 12px; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center; text-align-last: center; width: 52px;
@@ -189,7 +181,7 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 .pri.p3 { color: var(--lo); }
 .pri option { color: var(--ink); background: var(--surface); }
 .c-price { text-align: right; font-variant-numeric: tabular-nums; }
-.head .c-price { text-align: right; }
+.head .c-price { justify-self: end; }
 .yen { font-family: var(--font-data); font-weight: 500; font-size: 16px; }
 .usd { font-family: var(--font-data); font-size: 11px; color: var(--muted); display: block; line-height: 1.3; }
 .state { font-size: 12px; color: var(--muted); }
@@ -240,16 +232,18 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
   .rate { margin-left: 0; text-align: left; align-items: flex-start; }
   .head { display: none; }
   .row {
-    grid-template-columns: 26px minmax(0, 1fr) auto 30px; align-items: start; padding: 12px;
+    grid-template-columns: 26px minmax(0, 1fr) auto auto; align-items: start; padding: 12px;
     grid-template-areas:
       "chk name name del"
-      "chk price pri pri"
+      "chk price color pri"
       "chk deck deck deck"
       "chk memo memo memo"
       "chk shop shop shop";
   }
   .c-chk { padding-top: 12px; }
   .c-pri { justify-self: end; }
+  .c-color { align-self: center; flex-wrap: nowrap; }
+  .c-del { justify-self: end; }
   .c-price { text-align: left; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .usd { display: inline; }
   .cell-in { border-color: var(--line); background: var(--bg); min-height: 38px; }
@@ -292,6 +286,7 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
             <label for="fName">カード名(日本語でも英語でも)</label>
             <input class="in" id="fName" type="text" placeholder="例: 稲妻 / Sol Ring" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest" required>
             <ul class="suggest" id="suggest" role="listbox" hidden></ul>
+            <p class="err" id="nameErr" role="alert" hidden></p>
           </div>
           <div class="field">
             <span class="lbl" id="priLbl">重要度</span>
@@ -318,9 +313,10 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
           <button class="linkbtn" id="bulkToggle" type="button" aria-expanded="false" aria-controls="bulk">まとめて追加する</button>
         </div>
         <div class="bulk" id="bulk" hidden>
-          <label for="fBulk" class="lbl">1行に1枚。メモ帳やExcelの列をそのまま貼り付けられます。重要度とデッキは上の選択が全部に付きます。</label>
-          <textarea class="in" id="fBulk" placeholder="Sol Ring&#10;稲妻&#10;1 Rhystic Study"></textarea>
+          <label for="fBulk" class="lbl">1行に1枚。Excelの行をそのまま貼り付けられます。列は「カード名・重要度・デッキ・メモ」の順で、カード名だけでも構いません。手で打つときは | で区切ります。1行目を見出し(カード名、重要度、デッキ、メモ)にすると、列の順番は自由で、ほかの列は無視します。重要度とデッキが空の行には、上の選択が付きます。</label>
+          <textarea class="in" id="fBulk" placeholder="Sol Ring&#10;稲妻 | 高 | セシル | 日本語版がほしい&#10;Rhystic Study | 中 | ウィック"></textarea>
           <div><button class="btn" id="bulkGo" type="button">この一覧を追加</button></div>
+          <p class="lbl" id="bulkStatus" role="status" hidden></p>
         </div>
       </form>
       <datalist id="decks"></datalist>
@@ -335,20 +331,27 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
           </label>
           <label>並び順
             <select id="uSort">
-              <option value="pri">重要度が高い順</option>
-              <option value="priceDesc">金額が高い順</option>
-              <option value="priceAsc">金額が安い順</option>
-              <option value="new">追加が新しい順</option>
-              <option value="deck">デッキ順</option>
+              <option value="pri">重要度</option>
+              <option value="price">金額</option>
+              <option value="name">カード名</option>
+              <option value="color">色</option>
+              <option value="deck">デッキ</option>
+              <option value="new">追加した日</option>
             </select>
           </label>
+          <button class="btn small dirbtn" id="uDir" type="button"></button>
           <label><input type="checkbox" id="uBought"> 購入済みも表示</label>
           <span class="count" id="count"></span>
         </div>
         <div class="list">
-          <div class="head" aria-hidden="true">
-            <span class="c-chk"></span><span class="c-name">カード名</span><span class="c-pri">重要度</span><span class="c-price">金額(目安)</span>
-            <span class="c-deck">デッキ</span><span class="c-memo">メモ</span><span class="c-shop">晴れる屋</span><span class="c-del"></span>
+          <div class="head">
+            <span class="c-chk"></span>
+            <span class="c-name"><button class="th" type="button" data-sort="name">カード名<span class="arrow"></span></button></span>
+            <span class="c-color"><button class="th" type="button" data-sort="color" title="固有色で並べ替え">色<span class="arrow"></span></button></span>
+            <span class="c-pri"><button class="th" type="button" data-sort="pri">重要度<span class="arrow"></span></button></span>
+            <span class="c-price"><button class="th" type="button" data-sort="price">金額(目安)<span class="arrow"></span></button></span>
+            <span class="c-deck"><button class="th" type="button" data-sort="deck">デッキ<span class="arrow"></span></button></span>
+            <span class="c-memo">メモ</span><span class="c-shop">晴れる屋</span><span class="c-del"></span>
           </div>
           <ul id="rows"></ul>
         </div>
@@ -415,6 +418,9 @@ const HARERUYA = 'https://www.hareruyamtg.com/ja/products/search?product=';
 const DAY = 864e5;
 const LS = { cards: 'mtgbuy.cards.v1', rate: 'mtgbuy.rate.v1', ui: 'mtgbuy.ui.v1', code: 'mtgbuy.code.v1', prev: 'mtgbuy.prevcode.v1' };
 const PRICE_KEY = { nonfoil: 'usd', foil: 'usd_foil', etched: 'usd_etched' };
+const MANA = 'https://svgs.scryfall.io/card-symbols/';
+const COLOR_WORD = { W: '白', U: '青', B: '黒', R: '赤', G: '緑', C: '無色' };
+const SORT_DIR = { pri: 'asc', price: 'desc', name: 'asc', color: 'asc', deck: 'asc', new: 'desc' };   // 列ごとの最初の向き
 const NO_DECK = '\u0000none';
 
 const $ = id => document.getElementById(id);
@@ -449,11 +455,17 @@ const state = {
   rate: null, rateDate: null,
   mode: 'local',            // 'local' | 'cloud'
   col: null, unsub: null, loaded: true,
-  ui: Object.assign({ deck: '', pri: '', sort: 'pri', showBought: false }, lsGet(LS.ui, {})),
+  ui: Object.assign({ deck: '', pri: '', sort: 'pri', dir: 'asc', showBought: false }, lsGet(LS.ui, {})),
   sel: null,                // 候補から選んだカード {name, nameJa}
   refreshing: false,
   autoRefreshed: false,
 };
+
+// 以前の版で保存した並び順の設定を今の形に直す
+if (state.ui.sort === 'priceDesc') { state.ui.sort = 'price'; state.ui.dir = 'desc'; }
+if (state.ui.sort === 'priceAsc') { state.ui.sort = 'price'; state.ui.dir = 'asc'; }
+if (!SORT_DIR[state.ui.sort]) state.ui.sort = 'pri';
+if (state.ui.dir !== 'asc' && state.ui.dir !== 'desc') state.ui.dir = SORT_DIR[state.ui.sort];
 
 /* ---------- 保存 ---------- */
 function clean(card) { const o = {}; for (const [k, v] of Object.entries(card)) o[k] = v === undefined ? null : v; return o; }
@@ -523,8 +535,10 @@ function makeQueue(gap) {
 const searchQ = makeQueue(600);   // 検索系は1秒に2回まで
 const lightQ = makeQueue(150);    // 候補表示は1秒に10回まで
 
-function sfFetch(path, init, queue = searchQ) {
+// wanted を渡すと、順番が来た時点で不要になっていた通信を飛ばす(入力途中の古い候補検索など)
+function sfFetch(path, init, queue = searchQ, wanted) {
   return queue(async () => {
+    if (wanted && !wanted()) return null;
     const r = await fetch(SF + path, Object.assign({ headers: { Accept: 'application/json' } }, init));
     if (r.status === 404) return null;
     if (!r.ok) throw new Error('Scryfall ' + r.status);
@@ -551,9 +565,9 @@ function fieldsOf(card) {
 }
 
 // 日本語名で探す。完全一致、前方一致、短い名前の順に並べる。
-async function searchJa(text) {
+async function searchJaOnce(text, wanted) {
   const t = bare(text);
-  const res = await sfFetch('/cards/search?unique=cards&q=' + q(t + ' lang:ja'));
+  const res = await sfFetch('/cards/search?unique=cards&q=' + q(t + ' lang:ja'), undefined, searchQ, wanted);
   const seen = new Set();
   const hits = [];
   for (const c of (res && res.data) || []) {
@@ -566,9 +580,36 @@ async function searchJa(text) {
   hits.sort((a, b) => rank(a) - rank(b) || a.nameJa.length - b.nameJa.length || a.nameJa.localeCompare(b.nameJa, 'ja'));
   return hits;
 }
-async function autocompleteEn(text) {
-  const res = await sfFetch('/cards/autocomplete?q=' + q(text), undefined, lightQ);
+// ひらがなで見つからなければカタカナに直してもう一度探す(「りすてぃ」→「リスティ」)
+const toKatakana = t => t.replace(/[ぁ-ゖ]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+async function searchJa(text, wanted) {
+  let hits = await searchJaOnce(text, wanted);
+  const kata = toKatakana(text);
+  if (!hits.length && kata !== text) hits = await searchJaOnce(kata, wanted);
+  return hits;
+}
+async function autocompleteEn(text, wanted) {
+  const res = await sfFetch('/cards/autocomplete?q=' + q(text), undefined, lightQ, wanted);
   return ((res && res.data) || []).slice(0, 8).map(name => ({ name, nameJa: null }));
+}
+
+// 入力された文字からカードを1枚に決める。
+// 戻り値: { status: 'ok', card } / { status: 'choose', items }(候補が複数) / { status: 'none' }(見つからない)
+async function findCard(text) {
+  const t = bare(text);
+  if (isJa(t)) {
+    const hits = await searchJa(t);
+    if (!hits.length) return { status: 'none' };
+    const exact = hits.filter(x => x.nameJa === t || x.nameJa === toKatakana(t));
+    if (exact.length === 1) return { status: 'ok', card: exact[0] };
+    if (hits.length === 1) return { status: 'ok', card: hits[0] };
+    return { status: 'choose', items: hits.slice(0, 8) };
+  }
+  const found = await sfFetch('/cards/named?fuzzy=' + q(t));
+  if (found) return { status: 'ok', card: { name: found.name, nameJa: null } };
+  const items = await autocompleteEn(t);
+  if (items.length === 1) return { status: 'ok', card: items[0] };
+  return items.length ? { status: 'choose', items } : { status: 'none' };
 }
 
 // 英語名から、いちばん安い版とその価格を返す。
@@ -622,7 +663,7 @@ async function resolveCard(card) {
       }
     }
     const best = await resolvePrints(name);
-    if (!best) return patchIfExists(card.id, { name, nameJa, resolved: true, status: 'notfound' });
+    if (!best) return patchIfExists(card.id, { name, nameJa, resolved: true, status: 'noprice' });
     if (!nameJa) { try { nameJa = await lookupJaName(name); } catch { nameJa = null; } }
     return patchIfExists(card.id, Object.assign(fieldsOf(best.card), {
       nameJa, resolved: true, usd: best.usd, finish: best.finish,
@@ -705,21 +746,35 @@ const priceJpy = c => (c.usd != null && state.rate ? c.usd * state.rate : null);
 /* ---------- 表示 ---------- */
 function decksInUse() { return [...new Set(state.cards.map(c => (c.deck || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')); }
 
+// 色の並び: 白青黒赤緑の単色 → 多色(色数が少ない順) → 無色。色がまだ分からないカードは最後。
+function colorRank(c) {
+  if (!c.sid) return null;
+  const bits = (c.colors || []).map(x => 'WUBRG'.indexOf(x)).filter(i => i >= 0).sort();
+  if (!bits.length) return 9000;
+  return bits.length * 1000 + bits.reduce((a, b) => a * 6 + b + 1, 0);
+}
+const SORT_KEY = {
+  pri: c => c.priority,
+  price: c => c.usd,
+  name: c => c.nameJa || c.name || null,
+  color: colorRank,
+  deck: c => (c.deck || '').trim() || null,
+  new: c => c.createdAt || 0,
+};
 function visibleCards() {
-  const { deck, pri, sort, showBought } = state.ui;
-  let list = state.cards.filter(c =>
+  const { deck, pri, sort, dir, showBought } = state.ui;
+  const list = state.cards.filter(c =>
     (showBought || !c.bought) &&
     (!pri || String(c.priority) === pri) &&
     (!deck || (deck === NO_DECK ? !(c.deck || '').trim() : (c.deck || '').trim() === deck)));
-  const price = c => { const p = priceJpy(c); return p == null ? (c.usd == null ? -1 : c.usd) : p; };
-  const cmp = {
-    pri: (a, b) => a.priority - b.priority || price(b) - price(a),
-    priceDesc: (a, b) => price(b) - price(a),
-    priceAsc: (a, b) => (price(a) < 0) - (price(b) < 0) || price(a) - price(b),
-    new: (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
-    deck: (a, b) => (a.deck || '￿').localeCompare(b.deck || '￿', 'ja') || a.priority - b.priority,
-  }[sort] || (() => 0);
-  return list.sort((a, b) => Number(a.bought) - Number(b.bought) || cmp(a, b) || (a.createdAt || 0) - (b.createdAt || 0));
+  const key = SORT_KEY[sort] || SORT_KEY.pri, sign = dir === 'desc' ? -1 : 1;
+  const cmp = (a, b) => {
+    const x = key(a), y = key(b);
+    if (x == null || y == null) return (x == null) - (y == null);          // 値がないものは向きに関係なく最後
+    return sign * (typeof x === 'string' ? x.localeCompare(y, 'ja') : x - y);
+  };
+  const tie = (a, b) => (sort === 'pri' ? 0 : a.priority - b.priority) || (b.usd == null ? -1 : b.usd) - (a.usd == null ? -1 : a.usd) || (a.createdAt || 0) - (b.createdAt || 0);
+  return list.sort((a, b) => Number(a.bought) - Number(b.bought) || cmp(a, b) || tie(a, b));
 }
 
 function renderSummary() {
@@ -759,6 +814,15 @@ function renderFilters() {
   $('uPri').value = state.ui.pri;
   $('uSort').value = state.ui.sort;
   $('uBought').checked = !!state.ui.showBought;
+  const desc = state.ui.dir === 'desc';
+  const words = { pri: ['高い順', '低い順'], price: ['安い順', '高い順'], name: ['昇順', '降順'], color: ['白→無色', '無色→白'], deck: ['昇順', '降順'], new: ['古い順', '新しい順'] }[state.ui.sort];
+  $('uDir').textContent = words[desc ? 1 : 0];
+  $('uDir').setAttribute('aria-label', '並び順の向きを切り替える。今は' + words[desc ? 1 : 0]);
+  for (const b of document.querySelectorAll('.th')) {
+    const on = b.dataset.sort === state.ui.sort;
+    b.setAttribute('aria-pressed', String(on));
+    b.querySelector('.arrow').textContent = on ? (desc ? '↓' : '↑') : '';
+  }
 }
 
 function priceCell(c) {
@@ -776,7 +840,6 @@ function rowEl(c) {
   const main = c.nameJa || c.name;
   const front = (c.name || '').split(' // ')[0];
   const colors = (c.colors && c.colors.length) ? c.colors : (c.resolved && c.sid ? ['C'] : []);
-  const colorWord = { W: '白', U: '青', B: '黒', R: '赤', G: '緑', C: '無色' };
   const thumb = h(c.uri ? 'a' : 'span', { class: 'thumb', href: c.uri || null, target: c.uri ? '_blank' : null, rel: c.uri ? 'noopener' : null, title: c.uri ? 'Scryfallでカードを見る' : null },
     c.img ? h('img', { src: c.img, alt: '', loading: 'lazy' }) : null);
   return h('li', { class: 'row' + (c.bought ? ' is-bought' : ''), dataset: { id: c.id } },
@@ -785,9 +848,9 @@ function rowEl(c) {
     h('div', { class: 'c-name' }, thumb,
       h('div', { class: 'names' },
         h('span', { class: 'n1', text: main }),
-        h('span', { class: 'n2' },
-          c.nameJa && c.name !== c.nameJa ? h('span', { text: c.name }) : null,
-          colors.length ? h('span', { class: 'pips', title: '固有色: ' + colors.map(x => colorWord[x] || x).join('') }, colors.map(x => h('i', { class: 'pip ' + x }))) : null))),
+        c.nameJa && c.name !== c.nameJa ? h('span', { class: 'n2', text: c.name }) : null)),
+    h('div', { class: 'c-color', title: colors.length ? '固有色: ' + colors.map(x => COLOR_WORD[x] || x).join('') : null },
+      colors.map(x => h('img', { class: 'mana', src: MANA + x + '.svg', alt: COLOR_WORD[x] || x, width: 17, height: 17, loading: 'lazy' }))),
     h('div', { class: 'c-pri' },
       h('select', { class: 'pri p' + c.priority, 'aria-label': main + ' の重要度', dataset: { fk: c.id + ':pri' }, onchange: e => patch(c.id, { priority: Number(e.target.value) }) },
         [1, 2, 3].map(p => h('option', { value: String(p), text: ['', '高', '中', '低'][p], selected: c.priority === p })))),
@@ -858,6 +921,53 @@ function deleteWithUndo(card) {
   toast(`「${card.nameJa || card.name}」を削除しました`, { label: '元に戻す', run: () => persist(card) });
 }
 
+/* ---------- まとめて追加の読み取り ----------
+   1行 = 1枚。列はタブ(Excelからの貼り付け)か | で区切る。
+   見出し行があればその名前で列を決め、なければ「カード名・重要度・デッキ・メモ」の順に読む。 */
+const PRI_WORD = { '高': 1, '中': 2, '低': 3, '1': 1, '2': 2, '3': 3, h: 1, m: 2, l: 3, high: 1, mid: 2, middle: 2, medium: 2, low: 3 };
+const HEAD_WORD = {
+  name: ['カード名', 'カード', '名前', 'name', 'card', 'cardname'],
+  priority: ['重要度', '優先度', 'priority'],
+  deck: ['デッキ', '入れる予定のデッキ', 'デッキ名', 'deck'],
+  memo: ['メモ', '備考', 'memo', 'note', 'notes'],
+};
+const cellsOf = line => (line.includes('\t') ? line.split('\t') : line.split(/[|｜]/)).map(c => c.trim());
+const priOf = v => PRI_WORD[String(v || '').trim().toLowerCase()] || null;
+function parseBulk(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return { header: null, items: [] };
+  // 見出し行かどうか: カード名の列を表す言葉が入っているか
+  const first = cellsOf(lines[0]).map(c => c.toLowerCase().replace(/\s+/g, ''));
+  let cols = null, header = null;
+  if (first.some(c => HEAD_WORD.name.includes(c))) {
+    cols = {};
+    for (const [key, words] of Object.entries(HEAD_WORD)) { const i = first.findIndex(c => words.includes(c)); if (i >= 0) cols[key] = i; }
+    header = lines.shift();
+  }
+  const items = [];
+  for (const raw of lines) {
+    const cells = cellsOf(raw);
+    let name, priority = null, deck = '', memo = '';
+    if (cols) {
+      name = cells[cols.name] || '';
+      priority = cols.priority == null ? null : priOf(cells[cols.priority]);
+      deck = cols.deck == null ? '' : (cells[cols.deck] || '');
+      memo = cols.memo == null ? '' : (cells[cols.memo] || '');
+    } else {
+      name = cells[0] || '';
+      const rest = cells.slice(1);
+      // 2列目が重要度(または空)なら「重要度・デッキ・メモ」、そうでなければ「デッキ・メモ」と読む
+      if (rest.length && (priOf(rest[0]) || rest[0] === '')) priority = priOf(rest.shift());
+      deck = rest.shift() || '';
+      memo = rest.filter(Boolean).join(' ');
+    }
+    name = name.replace(/^\s*\d+\s*[xX×枚]?\s+/, '').trim();      // 「1 Sol Ring」「2x 稲妻」の枚数は外す
+    if (!name) continue;
+    items.push({ raw, name, priority, deck: deck.slice(0, 60), memo: memo.slice(0, 300) });
+  }
+  return { header, items };
+}
+
 /* ---------- カード名の候補 ---------- */
 const sug = { items: [], active: -1, token: 0, composing: false, timer: null };
 function closeSuggest() { $('suggest').hidden = true; $('fName').setAttribute('aria-expanded', 'false'); sug.items = []; sug.active = -1; }
@@ -875,23 +985,31 @@ function chooseSuggest(i) {
   const it = sug.items[i]; if (!it) return;
   state.sel = it;
   $('fName').value = it.nameJa || it.name;
+  nameError('');
   closeSuggest();
 }
+function nameError(text) { $('nameErr').textContent = text || ''; $('nameErr').hidden = !text; }
 function onNameInput() {
   state.sel = null;
+  nameError('');
   clearTimeout(sug.timer);
   const text = $('fName').value.trim();
-  if (sug.composing) return;
-  if (text.length < 2 && !(isJa(text) && text.length >= 1)) return closeSuggest();
   const token = ++sug.token;
+  if (text.length < 2 && !(isJa(text) && text.length >= 1)) return closeSuggest();
+  sug.items = []; sug.active = -1;                 // 前の入力の候補は残さない(古い候補を選んでしまうのを防ぐ)
+  paintSuggest('候補を探しています…');
+  const wanted = () => token === sug.token;
   sug.timer = setTimeout(async () => {
     try {
-      const items = isJa(text) ? (await searchJa(text)).slice(0, 8) : await autocompleteEn(text);
-      if (token !== sug.token || $('fName').value.trim() !== text) return;
+      const items = isJa(text) ? (await searchJa(text, wanted)).slice(0, 8) : await autocompleteEn(text, wanted);
+      if (!wanted()) return;
       sug.items = items; sug.active = -1;
-      paintSuggest(items.length ? null : '候補が見つかりません。別の書き方を試してください。');
-    } catch { if (token === sug.token) closeSuggest(); }
-  }, 320);
+      // 変換の途中は「見つからない」と出さない(確定すると見つかることが多いため)
+      if (items.length) paintSuggest();
+      else if (sug.composing) closeSuggest();
+      else paintSuggest('候補が見つかりません。別の書き方を試してください。');
+    } catch { if (wanted()) closeSuggest(); }
+  }, 250);
 }
 
 /* ---------- 同期(同期コード + 暗号化) ----------
@@ -1018,7 +1136,7 @@ function bind() {
   const name = $('fName');
   name.addEventListener('input', onNameInput);
   name.addEventListener('compositionstart', () => { sug.composing = true; });
-  name.addEventListener('compositionend', () => { sug.composing = false; onNameInput(); });
+  name.addEventListener('compositionend', () => { sug.composing = false; onNameInput(); });   // 確定した文字で候補を出し直す
   name.addEventListener('blur', () => setTimeout(closeSuggest, 120));
   name.addEventListener('keydown', e => {
     if ($('suggest').hidden || !sug.items.length) return;
@@ -1036,11 +1154,28 @@ function bind() {
     priority: Number((document.querySelector('input[name="pri"]:checked') || {}).value || 2),
     deck: $('fDeck').value.trim(), memo: $('fMemo').value.trim(),
   });
-  $('addForm').addEventListener('submit', e => {
+  // 追加の前にカードを特定する。見つからなければ一覧には入れず、欄の下にエラーを出す。
+  let adding = false;
+  $('addForm').addEventListener('submit', async e => {
     e.preventDefault();
-    const text = name.value.trim(); if (!text) return;
-    const sel = state.sel; state.sel = null;
-    clearTimeout(sug.timer); sug.token++; closeSuggest();
+    const text = name.value.trim(); if (!text || adding) return;
+    let sel = state.sel;
+    clearTimeout(sug.timer); sug.token++; closeSuggest(); nameError('');
+    if (!sel) {
+      adding = true; $('addBtn').disabled = true; $('addBtn').textContent = '確認中…';
+      let r;
+      try { r = await findCard(text); } catch (err) { console.error(err); r = { status: 'error' }; }
+      adding = false; $('addBtn').disabled = false; $('addBtn').textContent = '追加';
+      if (name.value.trim() !== text) return;                       // 確認中に書き換えられたら何もしない
+      if (r.status === 'ok') sel = r.card;
+      else {
+        name.focus();
+        if (r.status === 'choose') { sug.items = r.items; sug.active = -1; paintSuggest(); return nameError('候補が複数あります。下の候補から選んでください。'); }
+        if (r.status === 'none') return nameError(`「${text}」は見つかりませんでした。カード名の一部を入れると候補が出ます。`);
+        return nameError('カードを検索できませんでした。通信状態を確かめて、もう一度試してください。');
+      }
+    }
+    state.sel = null;
     addCard(Object.assign({ text, sel }, formValues()));
     name.value = ''; $('fMemo').value = ''; name.focus();
   });
@@ -1049,17 +1184,38 @@ function bind() {
     if (open) $('fBulk').focus();
   });
   $('bulkGo').addEventListener('click', async () => {
-    const lines = $('fBulk').value.split(/\r?\n/).map(s => s.replace(/^\s*\d+\s*[xX×枚]?\s+/, '').trim()).filter(Boolean);
-    if (!lines.length) return toast('カード名を1行に1枚ずつ入れてください');
-    const batch = lines.slice(0, 100), v = formValues();
-    $('fBulk').value = lines.slice(100).join('\n');
-    toast(`${batch.length}枚を追加しています。金額は順番に入ります。` + (lines.length > 100 ? '残りは欄に残してあります。' : ''), null, 5000);
-    for (const text of batch) addCard({ text, sel: null, priority: v.priority, deck: v.deck, memo: '' });
+    const { header, items } = parseBulk($('fBulk').value);
+    const status = text => { $('bulkStatus').textContent = text; $('bulkStatus').hidden = !text; };
+    if (!items.length) return status('カード名を1行に1枚ずつ入れてください。');
+    const batch = items.slice(0, 100), rest = items.slice(100), v = formValues();
+    const failed = []; let ok = 0;
+    $('bulkGo').disabled = true;
+    for (let i = 0; i < batch.length; i++) {
+      const it = batch[i];
+      status(`${batch.length}枚中 ${i + 1}枚目を確認しています…`);
+      let r;
+      try { r = await findCard(it.name); } catch (err) { console.error(err); r = { status: 'error' }; }
+      if (r.status === 'ok') { ok++; addCard({ text: it.name, sel: r.card, priority: it.priority || v.priority, deck: it.deck || v.deck, memo: it.memo }); }
+      else failed.push(it);
+    }
+    $('bulkGo').disabled = false;
+    const left = failed.concat(rest).map(it => it.raw);
+    $('fBulk').value = (left.length && header ? [header] : []).concat(left).join('\n');   // 見出しは残りの行と一緒に残す
+    status(`${ok}枚を追加しました。`
+      + (failed.length ? `次の${failed.length}行は、見つからないか候補が複数ありました。欄に残してあるので、書き方を直してもう一度追加してください。` : '')
+      + (rest.length ? `一度に追加できるのは100行までです。残りの${rest.length}行も欄に残してあります。` : ''));
   });
 
   $('uDeck').addEventListener('change', e => { state.ui.deck = e.target.value; saveUi(); render(); });
   $('uPri').addEventListener('change', e => { state.ui.pri = e.target.value; saveUi(); render(); });
-  $('uSort').addEventListener('change', e => { state.ui.sort = e.target.value; saveUi(); render(); });
+  const sortBy = key => {
+    if (state.ui.sort === key) state.ui.dir = state.ui.dir === 'asc' ? 'desc' : 'asc';   // 同じ列をもう一度押すと向きが逆になる
+    else { state.ui.sort = key; state.ui.dir = SORT_DIR[key]; }
+    saveUi(); render();
+  };
+  $('uSort').addEventListener('change', e => { state.ui.sort = e.target.value; state.ui.dir = SORT_DIR[e.target.value]; saveUi(); render(); });
+  $('uDir').addEventListener('click', () => sortBy(state.ui.sort));
+  for (const b of document.querySelectorAll('.th')) b.addEventListener('click', () => sortBy(b.dataset.sort));
   $('uBought').addEventListener('change', e => { state.ui.showBought = e.target.checked; saveUi(); render(); });
   $('refresh').addEventListener('click', () => refreshPrices(true));
 
