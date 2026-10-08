@@ -70,6 +70,8 @@ a { color: var(--accent); }
 /* ヘッダー */
 .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
 h1 { font-family: var(--font-display); font-size: 26px; line-height: 1.2; margin: 0; letter-spacing: .04em; }
+.top-right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+.help { font-size: 14px; font-weight: 500; }
 .sync { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 .sync .who { color: var(--ink); font-weight: 500; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mid); flex: none; }
@@ -145,6 +147,7 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 .filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; font-size: 14px; }
 .filters label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
 .filters select { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 6px 8px; max-width: 46vw; }
+.filters input[type="search"] { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 6px 8px; width: 11.5em; max-width: 46vw; }
 .filters .count { margin-left: auto; color: var(--muted); font-size: 13px; }
 
 /* 一覧 */
@@ -261,7 +264,10 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
 <div class="wrap">
   <header class="top">
     <h1>MTG購入リスト</h1>
-    <div class="sync" id="sync"></div>
+    <div class="top-right">
+      <a class="help" href="guide.html" target="_blank" rel="noopener">使い方</a>
+      <div class="sync" id="sync"></div>
+    </div>
   </header>
 
   <div class="notice" id="alert" hidden><p id="alertText"></p></div>
@@ -329,6 +335,13 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
               <option value="">すべて</option><option value="1">高</option><option value="2">中</option><option value="3">低</option>
             </select>
           </label>
+          <label>色
+            <select id="uColor">
+              <option value="">すべて</option><option value="W">白</option><option value="U">青</option><option value="B">黒</option><option value="R">赤</option><option value="G">緑</option><option value="C">無色</option><option value="M">多色</option>
+            </select>
+          </label>
+          <label>メモ <input id="uMemo" type="search" placeholder="メモの文字で探す" autocomplete="off"></label>
+          <button class="linkbtn" id="uClear" type="button" hidden>絞り込みを解除</button>
           <label>並び順
             <select id="uSort">
               <option value="pri">重要度</option>
@@ -455,7 +468,7 @@ const state = {
   rate: null, rateDate: null,
   mode: 'local',            // 'local' | 'cloud'
   col: null, unsub: null, loaded: true,
-  ui: Object.assign({ deck: '', pri: '', sort: 'pri', dir: 'asc', showBought: false }, lsGet(LS.ui, {})),
+  ui: Object.assign({ deck: '', pri: '', color: '', memo: '', sort: 'pri', dir: 'asc', showBought: false }, lsGet(LS.ui, {}), { memo: '' }),   // メモの絞り込みは開き直すと空に戻す
   sel: null,                // 候補から選んだカード {name, nameJa}
   refreshing: false,
   autoRefreshed: false,
@@ -762,10 +775,21 @@ const SORT_KEY = {
   new: c => c.createdAt || 0,
 };
 function visibleCards() {
-  const { deck, pri, sort, dir, showBought } = state.ui;
+  const { deck, pri, color, sort, dir, showBought } = state.ui;
+  const memoQ = (state.ui.memo || '').trim().toLowerCase();
+  // 色: 単色を選ぶと「その色を含むカード」。無色は色のないカード、多色は2色以上。
+  const colorOk = c => {
+    if (!color) return true;
+    const cs = c.colors || [];
+    if (color === 'C') return !!c.sid && !cs.length;
+    if (color === 'M') return cs.length >= 2;
+    return cs.includes(color);
+  };
   const list = state.cards.filter(c =>
     (showBought || !c.bought) &&
     (!pri || String(c.priority) === pri) &&
+    colorOk(c) &&
+    (!memoQ || (c.memo || '').toLowerCase().includes(memoQ)) &&
     (!deck || (deck === NO_DECK ? !(c.deck || '').trim() : (c.deck || '').trim() === deck)));
   const key = SORT_KEY[sort] || SORT_KEY.pri, sign = dir === 'desc' ? -1 : 1;
   const cmp = (a, b) => {
@@ -780,7 +804,7 @@ function visibleCards() {
 function renderSummary() {
   const list = visibleCards().filter(c => !c.bought);
   const priced = list.filter(c => c.usd != null);
-  const filtered = state.ui.deck || state.ui.pri;
+  const filtered = state.ui.deck || state.ui.pri || state.ui.color || (state.ui.memo || '').trim();
   $('totalLabel').textContent = filtered ? '表示中の未購入の合計' : '未購入の合計';
   // 行ごとに円へ丸めた金額を足すので、一覧の数字を足した結果と一致する
   const money = arr => (state.rate
@@ -812,6 +836,9 @@ function renderFilters() {
   sel.replaceChildren(h('option', { value: '', text: 'すべて' }), ...decks.map(d => h('option', { value: d, text: d })), h('option', { value: NO_DECK, text: '未設定' }));
   sel.value = state.ui.deck;
   $('uPri').value = state.ui.pri;
+  $('uColor').value = state.ui.color;
+  if (document.activeElement !== $('uMemo')) $('uMemo').value = state.ui.memo;     // 入力中の欄は書き換えない
+  $('uClear').hidden = !(state.ui.deck || state.ui.pri || state.ui.color || state.ui.memo);
   $('uSort').value = state.ui.sort;
   $('uBought').checked = !!state.ui.showBought;
   const desc = state.ui.dir === 'desc';
@@ -1208,6 +1235,9 @@ function bind() {
 
   $('uDeck').addEventListener('change', e => { state.ui.deck = e.target.value; saveUi(); render(); });
   $('uPri').addEventListener('change', e => { state.ui.pri = e.target.value; saveUi(); render(); });
+  $('uColor').addEventListener('change', e => { state.ui.color = e.target.value; saveUi(); render(); });
+  $('uMemo').addEventListener('input', e => { state.ui.memo = e.target.value; render(); });
+  $('uClear').addEventListener('click', () => { Object.assign(state.ui, { deck: '', pri: '', color: '', memo: '' }); $('uMemo').value = ''; saveUi(); render(); });
   const sortBy = key => {
     if (state.ui.sort === key) state.ui.dir = state.ui.dir === 'asc' ? 'desc' : 'asc';   // 同じ列をもう一度押すと向きが逆になる
     else { state.ui.sort = key; state.ui.dir = SORT_DIR[key]; }
