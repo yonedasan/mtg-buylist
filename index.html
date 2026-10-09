@@ -323,6 +323,8 @@ body.playing .wrap { max-width: 1560px; padding-top: 14px; }
 .pc-badge { position: absolute; z-index: 2; pointer-events: none; font-family: var(--font-data); font-size: 12px; background: var(--ink); color: var(--bg); border-radius: 11px; padding: 1px 7px; line-height: 1.5; }
 .pc-badge.ctr { right: -5px; bottom: -5px; }
 .pc-badge.tax { left: 50%; bottom: -8px; transform: translateX(-50%); white-space: nowrap; }
+.pc-badge.dfc { left: -5px; top: -5px; font-family: var(--font-body); font-size: 11px; font-weight: 700; }
+.pc-badge.dfc.on { background: var(--accent); color: var(--accent-ink); }
 .ptoken { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; }
 .ptoken .in { width: 15em; max-width: 100%; padding: 5px 8px; font-size: 13px; }
 #pPreview img { width: 100%; border-radius: 9px; display: block; }
@@ -639,7 +641,7 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
             <div class="pcards" id="pPanelCards"></div>
           </section>
           <section class="pzone">
-            <h3>戦場 <span class="num" id="pBfN"></span><span class="hint">カードを押すとタップ。右上の「…」で移動やカウンター</span><button class="btn small" id="pUntap" type="button">すべてアンタップ</button></h3>
+            <h3>戦場 <span class="num" id="pBfN"></span><span class="hint">カードを押すとタップ。右上の「…」で移動、カウンター、裏面</span><button class="btn small" id="pUntap" type="button">すべてアンタップ</button></h3>
             <div class="pcards" id="pBfMain"></div>
             <div class="pcards plands" id="pBfLand"></div>
             <form class="ptoken" id="pTokenForm" autocomplete="off">
@@ -697,7 +699,7 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
   <div class="dlg">
     <img id="zoomImg" alt="">
     <p id="zoomName"></p>
-    <div class="foot"><button class="btn" id="zoomClose" type="button">閉じる</button></div>
+    <div class="foot two"><button class="btn" id="zoomFlip" type="button" hidden>裏面を見る</button><button class="btn" id="zoomClose" type="button">閉じる</button></div>
   </div>
 </dialog>
 
@@ -2010,8 +2012,42 @@ function bindDecks() {
    盤面はこの窓の中だけにあり、保存も同期もしない(閉じると消える)。 */
 const PZONE = { lib: 'ライブラリー', hand: '手札', bf: '戦場', gy: '墓地', ex: '追放', cmd: '統率領域' };
 const PZ_KEYS = Object.keys(PZONE);
-const play = { deckId: null, g: null, undo: [], sel: null, panel: null, note: '' };
-const bigUrl = id => (id ? `https://cards.scryfall.io/normal/front/${id[0]}/${id[1]}/${id}.jpg` : null);
+const play = { deckId: null, g: null, undo: [], sel: null, panel: null, note: '', faces: {}, zoom: null };
+// カードの絵。両面カードの裏面は back に置かれている
+const faceUrl = (id, back, big) => (id ? `https://cards.scryfall.io/${big ? 'normal' : 'small'}/${back ? 'back' : 'front'}/${id[0]}/${id[1]}/${id}.jpg` : null);
+
+/* 両面カード(変身するカードや、表と裏のどちらでも使えるカード)。
+   裏面があるかどうかと裏面の種類は、デッキには保存していないので、一人回しを始めるときにScryfallに問い合わせて、
+   この窓の中だけで覚える。問い合わせできなかったときは、裏面の絵が読み込めるかどうかで判断する。 */
+const dfcOf = c => (c && !c.tok && c.s && play.faces[c.s]) || null;
+const showsBack = c => !!(c.back && dfcOf(c));
+const sideName = (c, back) => { const pick = v => (v && v.includes(' // ') ? v.split(' // ')[back ? 1 : 0] : null); return pick(c.j) || pick(c.n) || c.j || c.n; };
+const shownName = c => (dfcOf(c) ? sideName(c, c.back) : c.j || c.n);
+const shownType = c => (showsBack(c) && dfcOf(c).bt ? dfcOf(c).bt : c.t);
+async function loadFaces(deck) {
+  const ids = [...new Set(allCards(deck).filter(c => c.s && c.n.includes(' // ') && !(c.s in play.faces)).map(c => c.s))];
+  if (!ids.length) return;
+  try {
+    for (let i = 0; i < ids.length; i += 75) {
+      const part = ids.slice(i, i + 75);
+      const res = await sfFetch('/cards/collection', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ identifiers: part.map(id => ({ id })) }) });
+      for (const id of part) play.faces[id] = false;
+      for (const c of (res && res.data) || []) {
+        const faces = c.card_faces || [];
+        if (c.id in play.faces && !c.image_uris && faces.length > 1 && faces[1].image_uris) play.faces[c.id] = { bt: typeOf({ type_line: faces[1].type_line }) };
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    await Promise.all(ids.filter(id => !(id in play.faces)).map(id => new Promise(done => {
+      const img = new Image();
+      img.onload = () => { play.faces[id] = { bt: null }; done(); };
+      img.onerror = () => { play.faces[id] = false; done(); };
+      img.src = faceUrl(id, true, false);
+    })));
+  }
+  if (state.route.view === 'play' && play.g) renderPlay();
+}
 function randInt(n) {                      // 0以上n未満の、かたよりのない乱数
   const lim = Math.floor(0x100000000 / n) * n, b = new Uint32Array(1);
   do { crypto.getRandomValues(b); } while (b[0] >= lim);
@@ -2029,7 +2065,7 @@ function openPlay(deck) {
 
 function newGame(deck) {
   const g = { turn: 1, life: 40, mull: 0, seq: 0, cards: {}, lib: [], hand: [], bf: [], gy: [], ex: [], cmd: [] };
-  const put = (c, zone, isCmd) => { const id = 'k' + (++g.seq); g.cards[id] = { n: c.n, j: c.j, t: c.t, s: c.s, cmd: isCmd, tap: false, ctr: 0, casts: 0, tok: false }; g[zone].push(id); };
+  const put = (c, zone, isCmd) => { const id = 'k' + (++g.seq); g.cards[id] = { n: c.n, j: c.j, t: c.t, s: c.s, cmd: isCmd, tap: false, ctr: 0, casts: 0, tok: false, back: false }; g[zone].push(id); };
   for (const c of deck.commanders) put(c, 'cmd', true);
   for (const c of deck.cards) for (let i = 0; i < c.q; i++) put(c, 'lib', false);
   shuffle(g.lib);                                       // ライブラリーは先頭がいちばん上
@@ -2052,6 +2088,7 @@ function moveCard(g, id, to, bottom) {
   if (!from || !c) return;
   g[from].splice(g[from].indexOf(id), 1);
   if (from === 'bf') { c.tap = false; c.ctr = 0; }
+  if (to !== 'bf') c.back = false;                               // 戦場の外では表面に戻る
   if (c.tok && to !== 'bf') { delete g.cards[id]; return; }      // トークンは戦場を離れると消える
   if (from === 'cmd' && to === 'bf') c.casts++;                   // 統率領域から唱えた回数(統率者税の計算用)
   if (to === 'lib' && !bottom) g.lib.unshift(id); else g[to].push(id);
@@ -2059,20 +2096,21 @@ function moveCard(g, id, to, bottom) {
 function drawCards(g, n) { let k = 0; while (k < n && g.lib.length) { g.hand.push(g.lib.shift()); k++; } return k; }
 
 function pCardEl(id, zone) {
-  const c = play.g.cards[id], name = c.j || c.n, onBf = zone === 'bf';
-  const face = c.s ? h('img', { src: thumbUrl(c.s), alt: name, loading: 'lazy' }) : h('span', { class: 'pname', text: name });
+  const c = play.g.cards[id], name = shownName(c), onBf = zone === 'bf', dfc = dfcOf(c);
+  const face = c.s ? h('img', { src: faceUrl(c.s, showsBack(c), false), alt: name, loading: 'lazy' }) : h('span', { class: 'pname', text: name });
   return h('div', { class: 'pcw' + (c.tap ? ' tap' : '') + (play.sel === id ? ' sel' : '') + (c.tok ? ' tok' : ''), dataset: { id, name: c.n } },
     h('button', { class: 'pc', type: 'button', title: name, 'aria-label': name + (onBf ? (c.tap ? '(タップ中。押すとアンタップ)' : '(押すとタップ)') : ''),
       onclick: () => (onBf ? act(g => { g.cards[id].tap = !g.cards[id].tap; }) : pickCard(id)), onmouseenter: () => showPreview(id) }, face),
     onBf ? h('button', { class: 'pc-more', type: 'button', text: '…', title: '移動やカウンター', 'aria-label': name + ' の操作を開く', onclick: () => pickCard(id) }) : null,
     c.ctr ? h('span', { class: 'pc-badge ctr', title: 'カウンター', text: (c.ctr > 0 ? '+' : '') + c.ctr }) : null,
+    dfc ? h('span', { class: 'pc-badge dfc' + (c.back ? ' on' : ''), title: c.back ? '裏面を表示しています' : '裏面があるカードです', text: c.back ? '裏面' : '両面' }) : null,
     zone === 'cmd' && c.casts ? h('span', { class: 'pc-badge tax', text: `統率者税 +${c.casts * 2}` }) : null);
 }
 function pickCard(id) { play.sel = play.sel === id ? null : id; renderPlay(); }
 function showPreview(id) {
   const c = play.g && play.g.cards[id];
   if (!c) return $('pPreview').replaceChildren(h('span', { class: 'none', text: 'カードにマウスを乗せるか、選ぶと表示されます。' }));
-  $('pPreview').replaceChildren(c.s ? h('img', { src: bigUrl(c.s), alt: c.j || c.n }) : h('div', { class: 'pname', text: c.j || c.n }));
+  $('pPreview').replaceChildren(c.s ? h('img', { src: faceUrl(c.s, showsBack(c), true), alt: shownName(c) }) : h('div', { class: 'pname', text: shownName(c) }));
 }
 
 // 選んだカードに対してできること
@@ -2103,6 +2141,12 @@ function actionsFor(id) {
     lib: ['hand', 'bf', 'gy', 'ex', 'top', 'bottom'], cmd: ['bf'],
   }[zone] || [];
   const list = order.map(k => A[k]);
+  if (dfcOf(c)) {
+    const backName = sideName(c, true);
+    const flip = { label: c.back ? '表面に戻す' : '裏面にする', run: () => act(x => { x.cards[id].back = !x.cards[id].back; }, c.back ? `「${sideName(c, false)}」を表面に戻しました。` : `「${backName}」(裏面)にしました。`) };
+    if (zone === 'bf') list.unshift(flip); else list.push(flip);
+    if (zone !== 'bf' && !c.back) list.splice(list.indexOf(A.bf) + 1, 0, { label: '裏面で戦場に出す', run: () => { play.sel = null; act(x => { moveCard(x, id, 'bf', false); x.cards[id].back = true; }, `「${backName}」(裏面)を戦場に出しました。`); } });
+  }
   if (zone === 'bf') list.unshift({ label: c.tap ? 'アンタップ' : 'タップ', run: () => act(x => { x.cards[id].tap = !x.cards[id].tap; }) });
   if (zone === 'bf') list.push({ label: 'カウンター +1', run: () => act(x => { x.cards[id].ctr++; }) }, { label: 'カウンター −1', run: () => act(x => { x.cards[id].ctr--; }) });
   if (c.cmd && zone !== 'cmd') list.push(A.cmd);
@@ -2126,7 +2170,7 @@ function renderPlay() {
   $('playMsg').hidden = !msg; $('playMsg').textContent = msg;
   $('playBody').hidden = !!msg;
   if (msg) return;
-  if (play.deckId !== deck.id || !play.g) { play.undo = []; newGame(deck); }
+  if (play.deckId !== deck.id || !play.g) { play.undo = []; newGame(deck); loadFaces(deck); }
   const g = play.g;
   document.title = `一人回し: ${deck.name}`;
   if (play.sel && (!g.cards[play.sel] || (zoneOf(play.sel) === 'lib' && !play.panel))) play.sel = null;
@@ -2141,7 +2185,7 @@ function renderPlay() {
   $('pDraw').disabled = !g.lib.length; $('pPeek').disabled = !g.lib.length; $('pSearch').disabled = !g.lib.length;
   $('pGyN').textContent = `${g.gy.length}枚`; $('pExN').textContent = `${g.ex.length}枚`;
   $('pGyOpen').disabled = !g.gy.length; $('pExOpen').disabled = !g.ex.length;
-  const lands = g.bf.filter(id => g.cards[id].t === 'L' && !g.cards[id].tok), others = g.bf.filter(id => !lands.includes(id));
+  const lands = g.bf.filter(id => shownType(g.cards[id]) === 'L' && !g.cards[id].tok), others = g.bf.filter(id => !lands.includes(id));   // 裏面が土地のカードは、裏面にすると土地の段に並ぶ
   $('pBfN').textContent = `${g.bf.length}枚`;
   fill($('pBfMain'), others, 'bf', '土地以外のカードはここに並びます。');
   fill($('pBfLand'), lands, 'bf', '土地はここに並びます。');
@@ -2158,14 +2202,29 @@ function renderPlay() {
     $('pActName').replaceChildren(pName(sel), h('small', { text: PZONE[zoneOf(sel)] }));
     $('pActBtns').replaceChildren(
       ...actionsFor(sel).map(a => h('button', { class: 'btn small', type: 'button', text: a.label, onclick: a.run })),
-      h('button', { class: 'btn small', type: 'button', text: '拡大', onclick: () => { const c = g.cards[sel]; if (!c) return; $('zoomImg').hidden = !c.s; if (c.s) $('zoomImg').src = bigUrl(c.s); $('zoomImg').alt = c.j || c.n; $('zoomName').textContent = (c.j ? c.j + ' / ' : '') + c.n; $('zoomDlg').showModal(); } }),
+      h('button', { class: 'btn small', type: 'button', text: '拡大', onclick: () => openZoom(sel) }),
       h('button', { class: 'btn small quiet', type: 'button', text: '選択をやめる', onclick: () => { play.sel = null; renderPlay(); } }));
     showPreview(sel);
   } else if (!$('pPreview').firstChild) showPreview(null);
 }
 
+// カードを大きく見る。両面カードは、盤面を変えずに裏面も見られる
+function openZoom(id, back) {
+  const c = play.g && play.g.cards[id];
+  if (!c) return;
+  const dfc = dfcOf(c), side = back == null ? showsBack(c) : back;
+  play.zoom = { id, back: side };
+  $('zoomImg').hidden = !c.s;
+  if (c.s) $('zoomImg').src = faceUrl(c.s, side && !!dfc, true);
+  $('zoomImg').alt = dfc ? sideName(c, side) : c.j || c.n;
+  $('zoomName').textContent = dfc ? sideName(c, side) + (side ? '(裏面)' : '(表面)') + ' / ' + c.n : (c.j ? c.j + ' / ' : '') + c.n;
+  $('zoomFlip').hidden = !dfc;
+  $('zoomFlip').textContent = side ? '表面を見る' : '裏面を見る';
+  if (!$('zoomDlg').open) $('zoomDlg').showModal();
+}
 function bindPlay() {
   const deckNow = () => state.decks.find(d => d.id === state.route.id);
+  $('zoomFlip').addEventListener('click', () => { if (play.zoom) openZoom(play.zoom.id, !play.zoom.back); });
   $('pNext').addEventListener('click', () => act(g => { g.turn++; for (const id of g.bf) g.cards[id].tap = false; return drawCards(g, 1); },
     k => `ターン${play.g.turn}。すべてアンタップして、` + (k ? `「${pName(play.g.hand[play.g.hand.length - 1])}」を引きました。` : 'ライブラリーが空のため引けませんでした。')));
   $('pDraw').addEventListener('click', () => act(g => drawCards(g, 1), k => (k ? `「${pName(play.g.hand[play.g.hand.length - 1])}」を引きました。` : 'ライブラリーが空です。')));
