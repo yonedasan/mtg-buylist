@@ -353,6 +353,7 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
 .carry { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
 .carry input { margin-top: 5px; accent-color: var(--accent); }
 .err { color: var(--hi); font-size: 14px; }
+.err a { white-space: nowrap; }
 .prev { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; overflow-wrap: anywhere; }
 
 @media (max-width: 860px) {
@@ -673,7 +674,7 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
       <label for="impText">晴れる屋のデッキリスト(貼り付け)</label>
       <ol class="steps">
         <li>晴れる屋でデッキのページを開く</li>
-        <li>メニューの「エクスポート」で「MTGアリーナ」か「日本語テキストをコピー」を選ぶ</li>
+        <li>メニューの「エクスポート」で「MTGアリーナ」を選ぶ(「日本語テキストをコピー」でも読めますが、一部のカードは見つからないことがあります)</li>
         <li>下の欄に貼り付ける</li>
       </ol>
       <textarea class="in" id="impText" placeholder="統率者&#10;1 魔女、ヤ・シュトラ・ルル&#10;&#10;デッキ&#10;1 太陽の指輪&#10;1 稲妻"></textarea>
@@ -931,6 +932,9 @@ async function searchJaOnce(text, wanted) {
   const t = bare(text);
   // 「ニヴ＝ミゼット」のように「＝」を含む名前は、そのままでは検索に当たらないので、そこで言葉を分ける
   const res = await sfFetch('/cards/search?unique=cards&q=' + q(t.replace(/[=＝]/g, ' ').trim() + ' lang:ja'), undefined, searchQ, wanted);
+  return jaHits(res, t);
+}
+function jaHits(res, t) {
   const seen = new Set();
   const hits = [];
   for (const c of (res && res.data) || []) {
@@ -944,12 +948,29 @@ async function searchJaOnce(text, wanted) {
   hits.sort((a, b) => rank(a) - rank(b) || a.nameJa.length - b.nameJa.length || a.nameJa.localeCompare(b.nameJa, 'ja'));
   return hits;
 }
+/* Scryfallの日本語名には「反（はん）因（いん）果（が）の残（ざん）留（りゅう）」のように、ふりがなごと登録されているカードがある
+   (2025年のセットに多い)。ふつうの検索では「反因果の残留」で当たらないので、漢字のあとにふりがなが挟まっていてもよい
+   正規表現で探し直す。正規表現の検索は遅い(約3秒)ので、ふつうの検索で見つからなかったときだけ使う。 */
+const KANJI = /[々㐀-鿿]/;
+const hasKanji = s => KANJI.test(s);
+const RUBY = '(（[ぁ-ゖー]+）)?';
+const rubyRx = t => [...t].map(ch => (KANJI.test(ch) ? ch + RUBY : /[=＝]/.test(ch) ? '[=＝]' : ch.replace(/[.*+?^${}()|[\]\\\/"]/g, '\\$&'))).join('');
+async function searchJaRuby(text, wanted) {
+  const t = bare(text);
+  const words = t.split(/\s+/).filter(Boolean);
+  if (!words.length || words.length > 4) return [];
+  try {
+    const res = await sfFetch('/cards/search?unique=cards&q=' + q('lang:ja ' + words.map(w => 'name:/' + rubyRx(w) + '/').join(' ')), undefined, searchQ, wanted);
+    return jaHits(res, t);
+  } catch (e) { console.error(e); return []; }
+}
 // ひらがなで見つからなければカタカナに直してもう一度探す(「りすてぃ」→「リスティ」)
 const toKatakana = t => t.replace(/[ぁ-ゖ]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60));
 async function searchJa(text, wanted) {
   let hits = await searchJaOnce(text, wanted);
   const kata = toKatakana(text);
   if (!hits.length && kata !== text) hits = await searchJaOnce(kata, wanted);
+  if (!hits.length && hasKanji(text)) { hits = await searchJaRuby(text, wanted); hits.ruby = true; }   // ふりがな入りで登録されている名前
   return hits;
 }
 async function autocompleteEn(text, wanted) {
@@ -962,10 +983,18 @@ async function autocompleteEn(text, wanted) {
 async function findCard(text) {
   const t = bare(text);
   if (isJa(t)) {
-    const hits = await searchJa(t);
+    let hits = await searchJa(t);
     if (!hits.length) return { status: 'none' };
     const same = v => v.normalize('NFKC');
-    const exact = hits.filter(x => same(x.nameJa) === same(t) || same(x.nameJa) === same(toKatakana(t)));
+    // 「表 // 裏」の名前は、表の名前だけでも同じとみなす
+    const exactOf = list => list.filter(x => [x.nameJa, x.nameJa.split(' // ')[0]].some(n => same(n) === same(t) || same(n) === same(toKatakana(t))));
+    let exact = exactOf(hits);
+    if (!exact.length && !hits.ruby && hasKanji(t)) {
+      // ぴったりの名前がないときは、ふりがな入りで登録されているカードも探す(別のカードを選んでしまわないように)
+      const have = new Set(hits.map(x => x.name));
+      hits = hits.concat((await searchJaRuby(t)).filter(x => !have.has(x.name)));
+      exact = exactOf(hits);
+    }
     if (exact.length === 1) return { status: 'ok', card: exact[0] };
     if (hits.length === 1) return { status: 'ok', card: hits[0] };
     return { status: 'choose', items: hits.slice(0, 8) };
@@ -1414,7 +1443,16 @@ function makeSuggest(input, ul, opts) {
     show(items) { st.items = items; st.active = -1; paint(); },       // 候補をこちらから出す
   };
 }
-function nameError(text) { $('nameErr').textContent = text || ''; $('nameErr').hidden = !text; }
+// 欄の下のお知らせ。lookup に日本語のカード名を渡すと、英語名を調べるためのリンクを付ける
+function showErr(el, text, lookup) {
+  el.replaceChildren(text || '', lookup ? h('a', { href: HARERUYA + q(lookup), target: '_blank', rel: 'noopener noreferrer', text: '晴れる屋で英語名を調べる' }) : null);
+  el.hidden = !text;
+}
+// 見つからなかったときの文。日本語名のデータがないカードがあるので、英語名で入れる方法を案内する
+const notFoundText = typed => (isJa(typed)
+  ? `「${typed}」は見つかりませんでした。名前の一部だけにすると候補が出ることがあります。カードのデータに日本語名が入っていないカードもあり、その場合は英語名で入れると追加できます。 `
+  : `「${typed}」は見つかりませんでした。カード名の一部を入れると候補が出ます。`);
+function nameError(text, lookup) { showErr($('nameErr'), text, lookup); }
 
 /* ---------- デッキ管理(統率者) ----------
    デッキ1つを、暗号化した1件のデータとして保存する。
@@ -1551,9 +1589,19 @@ async function resolveDeckNames(names, progress) {
   // 2. 日本語版がない英語名は、英語版の情報で埋める
   const restEn = keys.filter(k => !found.has(k) && !isJa(want.get(k)));
   if (restEn.length) { const got = await byName(restEn.map(k => want.get(k))); for (const k of restEn) if (got.has(k)) found.set(k, toDeckCard(got.get(k), null)); }
-  // 3. 日本語名が完全には一致しなかったものは、1枚ずつ探す(多すぎるときは20枚まで)
-  const restJa = keys.filter(k => !found.has(k) && isJa(want.get(k))).slice(0, 20);
   const loose = [];
+  // 3. ふりがな入りで登録されている日本語名は、正規表現でまとめて探す(1回に指定できるのは6枚ほどまで。遅いので60枚まで)
+  const restRuby = keys.filter(k => !found.has(k) && hasKanji(want.get(k)) && !/\s/.test(want.get(k))).slice(0, 60);
+  for (let i = 0; i < restRuby.length; i += 5) {
+    const part = restRuby.slice(i, i + 5);
+    try {
+      const res = await sfFetch('/cards/search?unique=cards&q=' + q('lang:ja (' + part.map(k => 'name:/^' + rubyRx(bare(want.get(k))) + '( .+)?$/').join(' or ') + ')'));
+      for (const c of (res && res.data) || []) { const ja = jaNameOf(c), k = ja ? nameKey(ja) : null; if (k && want.has(k) && !found.has(k)) loose.push([k, { name: c.name, nameJa: ja }]); }
+    } catch (e) { console.error(e); }
+  }
+  const viaRuby = new Set(loose.map(([k]) => k));
+  // 4. それでも残った日本語名は、1枚ずつ探す(多すぎるときは20枚まで)
+  const restJa = keys.filter(k => !found.has(k) && !viaRuby.has(k) && isJa(want.get(k))).slice(0, 20);
   for (const k of restJa) {
     const hits = await searchJaOnce(want.get(k));
     const hit = hits.find(x => nameKey(x.nameJa) === k) || (hits.length === 1 ? hits[0] : null);
@@ -1700,7 +1748,7 @@ function applyRoute() {
 const wubrg = colors => [...'WUBRG'].filter(x => colors.includes(x));
 const manaEls = (colors, known) => (colors.length ? wubrg(colors) : (known ? ['C'] : [])).map(x => h('img', { class: 'mana', src: MANA + x + '.svg', alt: COLOR_WORD[x] || x, width: 17, height: 17, loading: 'lazy' }));
 const thumbEl = c => h('span', { class: 'thumb' }, c.s ? h('img', { src: thumbUrl(c.s), alt: '', loading: 'lazy' }) : null);
-function deckErrMsg(text) { $('dErr').textContent = text || ''; $('dErr').hidden = !text; }
+function deckErrMsg(text, lookup) { showErr($('dErr'), text, lookup); }
 
 function renderDeckView() {
   const r = state.route;
@@ -1879,7 +1927,7 @@ function bindDecks() {
       if (!sel) {
         const r = await findCard(typed);
         if (r.status === 'ok') sel = r.card;
-        else { done(); input.focus(); if (r.status === 'choose') { dSug.show(r.items); return deckErrMsg('当てはまるカードが複数あります。下に出たカードから選んでください。'); } return deckErrMsg(`「${typed}」は見つかりませんでした。カード名の一部を入れると候補が出ます。`); }
+        else { done(); input.focus(); if (r.status === 'choose') { dSug.show(r.items); return deckErrMsg('当てはまるカードが複数あります。下に出たカードから選んでください。'); } return deckErrMsg(notFoundText(typed), isJa(typed) ? typed : null); }
       }
       const now = cur() || deck, label = sel.nameJa || sel.name;
       if (mode === 'cand') {
@@ -1944,7 +1992,7 @@ function bindDecks() {
         $('impTitle').textContent = '晴れる屋から取り込む'; $('impNameWrap').hidden = true; $('impNote').hidden = true; $('impModeWrap').hidden = false; $('impGo').textContent = '取り込む';
         document.querySelector('input[name="impMode"][value="append"]').checked = true;
         $('impText').value = r.missing.join('\n');
-        status(`${r.count}枚を取り込みました。次の${r.missing.length}行は見つかりませんでした。欄に残してあるので、カード名を直して、もう一度「取り込む」を押してください。`);
+        status(`${r.count}枚を取り込みました。次の${r.missing.length}行は見つかりませんでした。欄に残してあるので、カード名を直して、もう一度「取り込む」を押してください。日本語名のデータがないカードは、英語名に書き換えると取り込めます。`);
       } else {
         $('impDlg').close();
         toast(`${r.count}枚を取り込みました` + (r.skipped ? `(サイドボードなどの${r.skipped}行は取り込んでいません)` : ''), null, 5000);
@@ -2331,7 +2379,7 @@ function bind() {
       else {
         name.focus();
         if (r.status === 'choose') { nameSug.show(r.items); return nameError('候補が複数あります。下の候補から選んでください。'); }
-        if (r.status === 'none') return nameError(`「${text}」は見つかりませんでした。カード名の一部を入れると候補が出ます。`);
+        if (r.status === 'none') return nameError(notFoundText(text), isJa(text) ? text : null);
         return nameError('カードを検索できませんでした。通信状態を確かめて、もう一度試してください。');
       }
     }
@@ -2362,7 +2410,7 @@ function bind() {
     const left = failed.concat(rest).map(it => it.raw);
     $('fBulk').value = (left.length && header ? [header] : []).concat(left).join('\n');   // 見出しは残りの行と一緒に残す
     status(`${ok}枚を追加しました。`
-      + (failed.length ? `次の${failed.length}行は、見つからないか候補が複数ありました。欄に残してあるので、書き方を直してもう一度追加してください。` : '')
+      + (failed.length ? `次の${failed.length}行は、見つからないか候補が複数ありました。欄に残してあるので、書き方を直してもう一度追加してください。日本語名で見つからないカードは、英語名にすると追加できます。` : '')
       + (rest.length ? `一度に追加できるのは100行までです。残りの${rest.length}行も欄に残してあります。` : ''));
   });
 
