@@ -212,6 +212,130 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 }
 .toast button { background: none; border: 0; color: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 0; white-space: nowrap; }
 
+/* 画面の切り替え */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-top: -6px; }
+.tabs a { padding: 8px 16px; text-decoration: none; color: var(--muted); font-weight: 700; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tabs a:hover { color: var(--ink); }
+.tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* デッキ管理 */
+.deck-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.deck-bar h2, #deckDetail h2, #reuseBox h3, #dWishBox h3 { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.4; }
+#reuseBox h3, #dWishBox h3 { font-size: 17px; }
+#dWishBox .note { margin: 0; font-size: 13px; color: var(--muted); }
+#dWish { list-style: none; margin: 0; padding: 0; }
+.wrow { display: grid; grid-template-columns: 34px minmax(150px, 2fr) 92px minmax(70px, auto) auto auto; gap: 4px 12px; padding: 8px 12px; align-items: center; }
+.wrow + .wrow { border-top: 1px solid var(--line); }
+.wrow > * { min-width: 0; grid-area: auto; }
+.wrow .w-price { font-family: var(--font-data); font-variant-numeric: tabular-nums; text-align: right; }
+.wrow .w-act { text-align: right; }
+.w-marks { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.deck-bar .count { color: var(--muted); font-size: 13px; }
+.deck-bar .btn { margin-left: auto; }
+.tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.tile { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.tile:hover { border-color: var(--accent); }
+.tfoot { display: flex; justify-content: flex-end; gap: 8px; padding: 0 12px 10px; }
+.tile a { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px; text-decoration: none; color: inherit; flex: 1; }
+.tile .thumbs { display: flex; gap: 4px; }
+.tile .thumb { width: 46px; height: 64px; }
+.tile .tname { font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.tile .tsub { font-size: 12px; color: var(--muted); line-height: 1.5; overflow-wrap: anywhere; }
+.tile .tmeta { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 13px; margin-top: 4px; }
+.tile .c-color { display: inline-flex; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.back { align-self: flex-start; font-size: 14px; }
+.deck-head { display: flex; flex-direction: column; gap: 10px; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.deck-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; background: transparent; border-color: transparent; padding-left: 0; }
+.deck-name:hover { border-color: var(--line); padding-left: 10px; }
+.deck-name:focus { border-color: var(--accent); background: var(--surface); padding-left: 10px; outline: none; }
+.dsum { display: flex; flex-wrap: wrap; gap: 8px 26px; align-items: center; font-size: 14px; }
+.dsum .lbl { font-size: 12px; color: var(--muted); letter-spacing: .06em; margin-right: 6px; }
+.dsum .big { font-family: var(--font-data); font-size: 20px; font-weight: 500; }
+.dsum .c-color { display: inline-flex; vertical-align: middle; }
+.dadd { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px 12px; align-items: end; }
+.grp { padding: 8px 12px; font-size: 12px; color: var(--muted); letter-spacing: .08em; background: color-mix(in srgb, var(--ink) 4%, transparent); border-top: 1px solid var(--line); }
+#dRows { list-style: none; margin: 0; padding: 0; }
+#dRows .grp:first-child { border-top: 0; }
+.drow { display: grid; align-items: center; gap: 4px 12px; padding: 8px 12px; border-top: 1px solid var(--line);
+  grid-template-columns: 34px minmax(170px, 2fr) 92px 96px minmax(150px, 2fr) 300px 30px;
+  grid-template-areas: "thumb name color qty marks act del"; }
+.drow > * { min-width: 0; }
+.d-thumb { grid-area: thumb; } .d-name { grid-area: name; } .d-qty { grid-area: qty; } .d-marks { grid-area: marks; } .d-act { grid-area: act; } .d-del { grid-area: del; }
+.d-qty { display: flex; align-items: center; gap: 6px; }
+.d-qty button { width: 26px; height: 26px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); cursor: pointer; line-height: 1; }
+.d-marks { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font-size: 13px; }
+.chip { display: inline-block; border: 1px solid currentColor; border-radius: 999px; padding: 0 9px; font-size: 12px; font-weight: 700; line-height: 1.7; white-space: nowrap; }
+.chip.reuse { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.chip.wish { color: var(--mid); background: color-mix(in srgb, var(--mid) 12%, transparent); }
+.chip.bad { color: var(--hi); background: color-mix(in srgb, var(--hi) 10%, transparent); }
+.with { color: var(--muted); overflow-wrap: anywhere; }
+.chip.done { color: var(--muted); }
+.chip.miss { color: var(--bg); background: var(--mid); border-color: var(--mid); }
+.d-act { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; align-items: center; }
+.mini { border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); padding: 2px 10px; font-size: 12px; line-height: 1.6; cursor: pointer; white-space: nowrap; }
+.mini:hover { border-color: var(--muted); }
+.mini[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); font-weight: 700; }
+/* 候補リスト: まだデッキに入っていないことが一目で分かるよう、破線の枠で囲む */
+.wishbox { border: 2px dashed var(--mid); border-radius: var(--radius); padding: 12px; background: color-mix(in srgb, var(--mid) 8%, transparent); }
+.wishbox h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tiles .empty { grid-column: 1 / -1; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+#reuseRows { list-style: none; margin: 0; padding: 0; }
+.rrow { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(0, 2fr); gap: 4px 16px; padding: 8px 12px; align-items: baseline; }
+.rrow + .rrow { border-top: 1px solid var(--line); }
+.rrow .with { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.radios { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; }
+.radios input, #dReuseOnly { accent-color: var(--accent); }
+.steps { margin: 0; padding-left: 1.4em; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
+
+/* 一人回し */
+body.playing .top, body.playing .tabs { display: none; }
+body.playing .wrap { max-width: 1560px; padding-top: 14px; }
+.play { --cw: 96px; --ch: calc(var(--cw) * 1.4); }
+.pbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; border-bottom: 2px solid var(--ink); padding-bottom: 10px; }
+.pbar h2 { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; }
+.pbar .gap { flex: 1; }
+.pstat { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.pstat b { font-family: var(--font-data); font-size: 20px; font-weight: 500; color: var(--ink); min-width: 2ch; text-align: center; }
+.pnote { margin: 8px 0 10px; font-size: 13px; color: var(--muted); min-height: 1.6em; }
+.pgrid { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 14px; align-items: start; }
+.pside, .pmain { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.pzone { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; min-width: 0; }
+.pzone h3 { margin: 0 0 8px; font-size: 12px; color: var(--muted); letter-spacing: .08em; font-weight: 700; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.pzone h3 .num { color: var(--ink); font-size: 15px; letter-spacing: 0; }
+.pzone h3 .hint { font-weight: 400; letter-spacing: 0; }
+.pzone h3 .btn { margin-left: auto; }
+.pbtns { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pbtns input[type="number"] { width: 58px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); color: var(--ink); padding: 4px 6px; font-size: 13px; }
+.pcards { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; min-height: 36px; }
+.pcards .none { color: var(--muted); font-size: 13px; align-self: center; }
+.plands { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.pcw { position: relative; flex: none; width: var(--cw); height: var(--ch); }
+.pcw.tap { width: var(--ch); }
+.pc { position: absolute; left: 50%; top: 0; margin-left: calc(var(--cw) / -2); width: var(--cw); height: var(--ch); padding: 0; border: 0; border-radius: 5px; overflow: hidden; background: var(--bg); color: var(--ink); cursor: pointer; font: inherit; box-shadow: 0 0 0 1px var(--line); }
+.pcw.tap .pc { transform: rotate(90deg); }
+.pcw.sel .pc { box-shadow: 0 0 0 3px var(--accent); }
+.pcw.tok .pc { box-shadow: 0 0 0 2px var(--mid); }
+.pc img { width: 100%; height: 100%; object-fit: cover; display: block; font-size: 11px; line-height: 1.3; }
+.pc .pname { display: flex; align-items: center; justify-content: center; height: 100%; padding: 6px; font-size: 12px; line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
+.pc-more { position: absolute; right: -5px; top: -5px; z-index: 2; width: 26px; height: 26px; border-radius: 13px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-weight: 700; line-height: 1; padding: 0; }
+.pc-more:hover { border-color: var(--accent); }
+.pc-badge { position: absolute; z-index: 2; pointer-events: none; font-family: var(--font-data); font-size: 12px; background: var(--ink); color: var(--bg); border-radius: 11px; padding: 1px 7px; line-height: 1.5; }
+.pc-badge.ctr { right: -5px; bottom: -5px; }
+.pc-badge.tax { left: 50%; bottom: -8px; transform: translateX(-50%); white-space: nowrap; }
+.ptoken { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; }
+.ptoken .in { width: 15em; max-width: 100%; padding: 5px 8px; font-size: 13px; }
+#pPreview img { width: 100%; border-radius: 9px; display: block; }
+#pPreview .pname { border: 1px solid var(--line); border-radius: 9px; padding: 24px 10px; text-align: center; font-size: 14px; }
+#pPreview .none { color: var(--muted); font-size: 13px; }
+.pact { position: sticky; bottom: 0; z-index: 20; margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; background: var(--ink); color: var(--bg); border-radius: var(--radius) var(--radius) 0 0; padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); }
+.pact .who { font-weight: 700; overflow-wrap: anywhere; }
+.pact .who small { font-weight: 400; opacity: .75; margin-left: 6px; }
+.pact .btn { color: var(--ink); }
+.pact .btn.quiet { color: var(--bg); border-color: color-mix(in srgb, var(--bg) 45%, transparent); }
+#zoomDlg { width: min(420px, calc(100vw - 32px)); }
+#zoomImg { width: 100%; border-radius: 12px; display: block; }
+
 /* 同期コードの画面 */
 dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); padding: 0; width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
 dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
@@ -221,6 +345,8 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
 .dlg .note, .dlg .prev { font-size: 13px; color: var(--muted); }
 .dlg .join { border-top: 1px solid var(--line); padding-top: 14px; gap: 8px; }
 .dlg .foot { display: flex; justify-content: flex-end; }
+.dlg .foot.two { gap: 8px; }
+.dlg textarea.in { min-height: 150px; }
 .coderow { display: flex; gap: 8px; flex-wrap: wrap; }
 .coderow .in { flex: 1 1 240px; min-width: 0; }
 .in.code, .mono { font-family: var(--font-data); letter-spacing: .04em; }
@@ -255,6 +381,33 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
   .c-shop { padding-top: 2px; }
   .total .yen { font-size: 32px; }
   .filters .count { margin-left: 0; flex-basis: 100%; }
+  .dadd { grid-template-columns: minmax(0, 1fr) auto; }
+  .dadd .f-name { grid-column: 1 / -1; }
+  .drow { grid-template-columns: 34px minmax(0, 1fr) auto 30px; align-items: start; padding: 12px;
+    grid-template-areas:
+      "thumb name name del"
+      "thumb color qty qty"
+      "thumb marks marks marks"
+      "thumb act act act"; }
+  .drow .c-color { align-self: center; }
+  .d-act { justify-content: flex-start; }
+  .mini { padding: 5px 12px; font-size: 13px; }
+  .d-qty { justify-self: end; }
+  .deck-bar .btn { margin-left: 0; }
+  .wrow { grid-template-columns: 34px minmax(0, 1fr) auto; padding: 12px;
+    grid-template-areas: "t n n" "t c p" "t s a"; }
+  .wrow > :nth-child(1) { grid-area: t; } .wrow > :nth-child(2) { grid-area: n; } .wrow > :nth-child(3) { grid-area: c; }
+  .wrow > :nth-child(4) { grid-area: p; } .wrow > :nth-child(5) { grid-area: s; } .wrow > :nth-child(6) { grid-area: a; }
+  .wrow .btn { min-height: 38px; }
+  .play { --cw: 68px; }
+  .pgrid { grid-template-columns: minmax(0, 1fr); }
+  .pside { flex-direction: row; flex-wrap: wrap; }
+  .pside .pzone { flex: 1 1 150px; }
+  .pside .ppreview { display: none; }
+  .phand .pcards { flex-wrap: nowrap; overflow-x: auto; padding: 6px 6px 10px; }
+  .pact .btn, .pbtns .btn { min-height: 36px; }
+  .pc-more { width: 30px; height: 30px; border-radius: 15px; }
+  .rrow { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: no-preference) {
   .toast { animation: rise .18s ease-out; }
@@ -271,6 +424,11 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
       <div class="sync" id="sync"></div>
     </div>
   </header>
+
+  <nav class="tabs" aria-label="画面の切り替え">
+    <a href="#list" id="tabList">購入リスト</a>
+    <a href="#decks" id="tabDecks">デッキ</a>
+  </nav>
 
   <div class="notice" id="alert" hidden><p id="alertText"></p></div>
 
@@ -373,9 +531,171 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
         <p class="credit">金額はScryfallのドル価格(いちばん安い版)を当日の為替レートで円に換算した目安です。実際の値段は晴れる屋のリンクで確認してください。</p>
       </section>
   </main>
+
+  <main id="deckApp" class="stack" hidden>
+    <div class="notice" id="deckAlert" hidden><p id="deckAlertText"></p></div>
+
+    <section id="deckIndex" class="stack">
+      <div class="deck-bar">
+        <h2>統率者デッキ</h2>
+        <span class="count" id="deckCount"></span>
+        <button class="btn primary" id="deckNew" type="button">新しいデッキ</button>
+      </div>
+      <ul class="tiles" id="deckTiles"></ul>
+      <section class="stack tight" id="reuseBox" hidden>
+        <h3>使いまわしのカード</h3>
+        <div class="list"><ul id="reuseRows"></ul></div>
+      </section>
+    </section>
+
+    <section id="deckDetail" class="stack" hidden>
+      <a class="back" href="#decks">← デッキの一覧</a>
+      <div id="deckMissing" class="empty" hidden></div>
+      <div id="deckBody" class="stack">
+        <div class="deck-head">
+          <input class="in deck-name" id="dName" type="text" maxlength="60" aria-label="デッキ名">
+          <div class="dsum" id="dSummary"></div>
+        </div>
+        <form class="add" id="dAddForm" autocomplete="off">
+          <div class="dadd">
+            <div class="field f-name">
+              <label for="dCard">デッキに入れるカード(日本語でも英語でも)</label>
+              <input class="in" id="dCard" type="text" placeholder="例: 稲妻 / Sol Ring" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="dSuggest">
+              <ul class="suggest" id="dSuggest" role="listbox" hidden></ul>
+              <p class="err" id="dErr" role="alert" hidden></p>
+            </div>
+            <div class="field"><button class="btn primary" id="dAddBtn" type="submit">デッキに追加</button></div>
+            <div class="field"><button class="btn" id="dImport" type="button">晴れる屋から取り込む</button></div>
+          </div>
+        </form>
+        <section class="stack tight wishbox" id="dWishBox" hidden>
+          <h3>候補リスト <span class="chip miss" id="dWishCount"></span></h3>
+          <p class="note">購入リストで「入れる予定のデッキ」がこのデッキになっているのに、まだデッキに入っていないカードです。</p>
+          <div class="list"><ul id="dWish"></ul></div>
+        </section>
+        <div class="filters">
+          <label><input type="checkbox" id="dReuseOnly"> 使いまわしのカードだけ表示</label>
+          <button class="btn small" id="dPlay" type="button">一人回し</button>
+          <span class="count" id="dCount"></span>
+          <button class="linkbtn" id="dDelete" type="button">このデッキを削除</button>
+        </div>
+        <div class="list"><ul id="dRows"></ul></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="playApp" class="play" hidden>
+    <div id="playMsg" class="empty" hidden></div>
+    <div id="playBody" hidden>
+      <div class="pbar">
+        <h2 id="pTitle"></h2>
+        <span class="pstat">ターン <b id="pTurn">1</b></span>
+        <button class="btn primary" id="pNext" type="button" title="すべてアンタップして、1枚引きます">次のターンへ</button>
+        <span class="pstat">ライフ
+          <button class="btn small" id="pLifeDown" type="button" aria-label="ライフを1減らす">−</button>
+          <b id="pLife">40</b>
+          <button class="btn small" id="pLifeUp" type="button" aria-label="ライフを1増やす">+</button>
+        </span>
+        <span class="gap"></span>
+        <button class="btn small" id="pUndo" type="button">元に戻す</button>
+        <button class="btn small" id="pReset" type="button">最初からやり直す</button>
+      </div>
+      <p class="pnote" id="pNote" role="status" aria-live="polite"></p>
+      <div class="pgrid">
+        <aside class="pside">
+          <section class="pzone">
+            <h3>統率領域</h3>
+            <div class="pcards" id="pCmd"></div>
+          </section>
+          <section class="pzone">
+            <h3>ライブラリー <span class="num" id="pLibN"></span></h3>
+            <div class="pbtns">
+              <button class="btn small" id="pDraw" type="button">1枚引く</button>
+              <button class="btn small" id="pShuffle" type="button">切り直す</button>
+              <button class="btn small" id="pSearch" type="button">探す</button>
+            </div>
+            <div class="pbtns" style="margin-top:6px">
+              <span class="pstat">上から</span>
+              <input id="pPeekN" type="number" min="1" max="99" value="1" aria-label="上から見る枚数">
+              <button class="btn small" id="pPeek" type="button">枚を見る</button>
+            </div>
+          </section>
+          <section class="pzone">
+            <h3>墓地 <span class="num" id="pGyN"></span><button class="btn small" id="pGyOpen" type="button">見る</button></h3>
+            <h3 style="margin:0">追放 <span class="num" id="pExN"></span><button class="btn small" id="pExOpen" type="button">見る</button></h3>
+          </section>
+          <section class="pzone ppreview">
+            <h3>カードの拡大</h3>
+            <div id="pPreview"></div>
+          </section>
+        </aside>
+        <div class="pmain">
+          <section class="pzone" id="pPanel" hidden>
+            <h3><span id="pPanelTitle"></span><button class="btn small" id="pPanelClose" type="button">閉じる</button></h3>
+            <div class="pcards" id="pPanelCards"></div>
+          </section>
+          <section class="pzone">
+            <h3>戦場 <span class="num" id="pBfN"></span><span class="hint">カードを押すとタップ。右上の「…」で移動やカウンター</span><button class="btn small" id="pUntap" type="button">すべてアンタップ</button></h3>
+            <div class="pcards" id="pBfMain"></div>
+            <div class="pcards plands" id="pBfLand"></div>
+            <form class="ptoken" id="pTokenForm" autocomplete="off">
+              <input class="in" id="pTokenName" type="text" maxlength="30" placeholder="トークンの名前(例: 宝物)" aria-label="トークンの名前">
+              <button class="btn small" type="submit">トークンを出す</button>
+            </form>
+          </section>
+          <section class="pzone phand">
+            <h3>手札 <span class="num" id="pHandN"></span><span class="hint">カードを押して、下に出るボタンで動かします</span><button class="btn small" id="pMull" type="button">マリガン</button></h3>
+            <div class="pcards" id="pHand"></div>
+          </section>
+        </div>
+      </div>
+      <div class="pact" id="pAct" hidden>
+        <span class="who" id="pActName"></span>
+        <div class="pbtns" id="pActBtns"></div>
+      </div>
+    </div>
+  </main>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toastText"></span><button id="toastAct" type="button" hidden></button></div>
+
+<dialog id="impDlg" aria-labelledby="impTitle">
+  <form class="dlg" id="impForm">
+    <h2 id="impTitle">新しいデッキ</h2>
+    <div class="field" id="impNameWrap">
+      <label for="impName">デッキ名(空なら統率者の名前になります)</label>
+      <input class="in" id="impName" type="text" maxlength="60" placeholder="例: セシル">
+    </div>
+    <div class="field">
+      <label for="impText">晴れる屋のデッキリスト(貼り付け)</label>
+      <ol class="steps">
+        <li>晴れる屋でデッキのページを開く</li>
+        <li>メニューの「エクスポート」で「MTGアリーナ」か「日本語テキストをコピー」を選ぶ</li>
+        <li>下の欄に貼り付ける</li>
+      </ol>
+      <textarea class="in" id="impText" placeholder="統率者&#10;1 魔女、ヤ・シュトラ・ルル&#10;&#10;デッキ&#10;1 太陽の指輪&#10;1 稲妻"></textarea>
+    </div>
+    <div class="radios" id="impModeWrap" hidden>
+      <label><input type="radio" name="impMode" value="replace" checked> いまのカードと入れ替える</label>
+      <label><input type="radio" name="impMode" value="append"> いまのカードに足す</label>
+    </div>
+    <p class="note" id="impNote">リストを貼らずに、空のデッキを作ることもできます。</p>
+    <p class="err" id="impErr" role="alert" hidden></p>
+    <p class="lbl" id="impStatus" role="status" hidden></p>
+    <div class="foot two">
+      <button class="btn" id="impClose" type="button">閉じる</button>
+      <button class="btn primary" id="impGo" type="submit">作成</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="zoomDlg" aria-labelledby="zoomName">
+  <div class="dlg">
+    <img id="zoomImg" alt="">
+    <p id="zoomName"></p>
+    <div class="foot"><button class="btn" id="zoomClose" type="button">閉じる</button></div>
+  </div>
+</dialog>
 
 <dialog id="syncDlg" aria-labelledby="syncTitle">
   <div class="dlg">
@@ -431,7 +751,7 @@ const SF = 'https://api.scryfall.com';
 const RATE_URL = 'https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY';
 const HARERUYA = 'https://www.hareruyamtg.com/ja/products/search?product=';
 const DAY = 864e5;
-const LS = { cards: 'mtgbuy.cards.v1', rate: 'mtgbuy.rate.v1', ui: 'mtgbuy.ui.v1', code: 'mtgbuy.code.v1', prev: 'mtgbuy.prevcode.v1' };
+const LS = { cards: 'mtgbuy.cards.v1', decks: 'mtgbuy.decks.v1', rate: 'mtgbuy.rate.v1', ui: 'mtgbuy.ui.v1', code: 'mtgbuy.code.v1', prev: 'mtgbuy.prevcode.v1' };
 const PRICE_KEY = { nonfoil: 'usd', foil: 'usd_foil', etched: 'usd_etched' };
 const MANA = 'https://svgs.scryfall.io/card-symbols/';
 const COLOR_WORD = { W: '白', U: '青', B: '黒', R: '赤', G: '緑', C: '無色' };
@@ -458,7 +778,7 @@ function h(tag, props, ...kids) {
     else if (k !== 'list' && k in el) el[k] = v;
     else el.setAttribute(k, v === true ? '' : v);
   }
-  for (const kid of kids.flat()) {
+  for (const kid of kids.flat(Infinity)) {
     if (kid == null || kid === false) continue;
     el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
   }
@@ -467,6 +787,8 @@ function h(tag, props, ...kids) {
 
 const state = {
   cards: [],
+  decks: [], decksLoaded: true, deckErr: false,   // 登録した統率者デッキ
+  route: { view: 'list' }, started: false, reuseOnly: false,
   rate: null, rateDate: null,
   mode: 'local',            // 'local' | 'cloud'
   col: null, unsub: null, loaded: true,
@@ -485,10 +807,12 @@ if (state.ui.dir !== 'asc' && state.ui.dir !== 'desc') state.ui.dir = SORT_DIR[s
 /* ---------- 保存 ---------- */
 // 保存や同期で受け取ったカードを、決まった形と安全な値にそろえる。
 // リンク先と画像はScryfallのものだけ、色は白青黒赤緑だけを通す。
-const text = (v, max) => (v == null ? '' : String(v)).slice(0, max);
+// 保存データから読むときは、文字と数字だけを受け取る(壊れたデータや細工されたデータで止まらないように)
+const text = (v, max) => (typeof v === 'string' ? v : typeof v === 'number' ? String(v) : '').slice(0, max);
+const plainNum = v => (typeof v === 'number' ? v : typeof v === 'string' && v.trim() ? Number(v) : NaN);
 function clean(o) {
   o = o && typeof o === 'object' ? o : {};
-  const usd = Number(o.usd), pri = Number(o.priority);
+  const usd = plainNum(o.usd), pri = plainNum(o.priority);
   return {
     id: text(o.id, 80), name: text(o.name, 200), nameJa: o.nameJa ? text(o.nameJa, 200) : null, query: text(o.query, 200), resolved: !!o.resolved,
     priority: pri === 1 || pri === 3 ? pri : 2, deck: text(o.deck, 60), memo: text(o.memo, 300), bought: !!o.bought,
@@ -499,7 +823,7 @@ function clean(o) {
     img: /^https:\/\/cards\.scryfall\.io\//.test(o.img || '') ? text(o.img, 300) : null,
     colors: Array.isArray(o.colors) ? o.colors.filter(x => typeof x === 'string' && x.length === 1 && 'WUBRG'.includes(x)).slice(0, 5) : [],
     status: ['ok', 'pending', 'notfound', 'noprice', 'error'].includes(o.status) ? o.status : 'ok',
-    priceAt: Number(o.priceAt) || null, createdAt: Number(o.createdAt) || 0,
+    priceAt: plainNum(o.priceAt) || null, createdAt: plainNum(o.createdAt) || 0,
   };
 }
 function localCards() { const a = lsGet(LS.cards, []); return Array.isArray(a) ? a.map(clean).filter(c => c.id) : []; }
@@ -581,8 +905,10 @@ function sfFetch(path, init, queue = searchQ, wanted) {
 const q = s => encodeURIComponent(s);
 const bare = s => s.replace(/["“”]/g, '').trim();
 
+// 新しいセットの日本語名には「繁（はん）殖（しょく）池（いけ）」のようにふりがなが入っていることがあるので外す
+const noRuby = n => String(n || '').replace(/([々㐀-鿿])（[ぁ-ゖー]+）/g, '$1');
 function jaNameOf(card) {
-  const n = card.printed_name || (card.card_faces || []).map(f => f.printed_name || f.name).join(' // ');
+  const n = noRuby(card.printed_name || (card.card_faces || []).map(f => f.printed_name || f.name).join(' // '));
   return n && isJa(n) ? n : null;
 }
 function fieldsOf(card) {
@@ -600,7 +926,8 @@ function fieldsOf(card) {
 // 日本語名で探す。完全一致、前方一致、短い名前の順に並べる。
 async function searchJaOnce(text, wanted) {
   const t = bare(text);
-  const res = await sfFetch('/cards/search?unique=cards&q=' + q(t + ' lang:ja'), undefined, searchQ, wanted);
+  // 「ニヴ＝ミゼット」のように「＝」を含む名前は、そのままでは検索に当たらないので、そこで言葉を分ける
+  const res = await sfFetch('/cards/search?unique=cards&q=' + q(t.replace(/[=＝]/g, ' ').trim() + ' lang:ja'), undefined, searchQ, wanted);
   const seen = new Set();
   const hits = [];
   for (const c of (res && res.data) || []) {
@@ -609,7 +936,8 @@ async function searchJaOnce(text, wanted) {
     seen.add(c.name);
     hits.push({ name: c.name, nameJa: ja });
   }
-  const rank = x => (x.nameJa === t ? 0 : x.nameJa.startsWith(t) ? 1 : 2);
+  const same = v => v.normalize('NFKC'), tn = same(t);
+  const rank = x => (same(x.nameJa) === tn ? 0 : same(x.nameJa).startsWith(tn) ? 1 : 2);
   hits.sort((a, b) => rank(a) - rank(b) || a.nameJa.length - b.nameJa.length || a.nameJa.localeCompare(b.nameJa, 'ja'));
   return hits;
 }
@@ -633,7 +961,8 @@ async function findCard(text) {
   if (isJa(t)) {
     const hits = await searchJa(t);
     if (!hits.length) return { status: 'none' };
-    const exact = hits.filter(x => x.nameJa === t || x.nameJa === toKatakana(t));
+    const same = v => v.normalize('NFKC');
+    const exact = hits.filter(x => same(x.nameJa) === same(t) || same(x.nameJa) === same(toKatakana(t)));
     if (exact.length === 1) return { status: 'ok', card: exact[0] };
     if (hits.length === 1) return { status: 'ok', card: hits[0] };
     return { status: 'choose', items: hits.slice(0, 8) };
@@ -709,9 +1038,9 @@ async function resolveCard(card) {
 }
 function patchIfExists(id, changes) { if (state.cards.some(c => c.id === id)) return patch(id, changes); }
 
-async function addCard({ text, sel, priority, deck, memo }) {
+async function addCard({ id, text, sel, priority, deck, memo }) {
   const card = {
-    id: newId(),
+    id: id || newId(),
     name: sel ? sel.name : text,
     nameJa: sel ? sel.nameJa : (isJa(text) ? text : null),
     query: text, resolved: !!sel,
@@ -778,6 +1107,8 @@ const priceJpy = c => (c.usd != null && state.rate ? c.usd * state.rate : null);
 
 /* ---------- 表示 ---------- */
 function decksInUse() { return [...new Set(state.cards.map(c => (c.deck || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')); }
+// デッキ欄の候補: 購入リストで使っている名前と、登録してあるデッキの名前
+function deckChoices() { return [...new Set(decksInUse().concat(state.decks.map(d => d.name)))].sort((a, b) => a.localeCompare(b, 'ja')); }
 
 // 色の並び: 白青黒赤緑の単色 → 多色(色数が少ない順) → 無色。色がまだ分からないカードは最後。
 function colorRank(c) {
@@ -850,7 +1181,7 @@ function renderSummary() {
 
 function renderFilters() {
   const decks = decksInUse();
-  const dl = $('decks'); dl.replaceChildren(...decks.map(d => h('option', { value: d })));
+  const dl = $('decks'); dl.replaceChildren(...deckChoices().map(d => h('option', { value: d })));
   const sel = $('uDeck');
   if (state.ui.deck && state.ui.deck !== NO_DECK && !decks.includes(state.ui.deck)) state.ui.deck = '';
   sel.replaceChildren(h('option', { value: '', text: 'すべて' }), ...decks.map(d => h('option', { value: d, text: d })), h('option', { value: NO_DECK, text: '未設定' }));
@@ -886,7 +1217,7 @@ function priceCell(c) {
 function rowEl(c) {
   const main = c.nameJa || c.name;
   const front = (c.name || '').split(' // ')[0];
-  const colors = (c.colors && c.colors.length) ? c.colors : (c.resolved && c.sid ? ['C'] : []);
+  const colors = (c.colors && c.colors.length) ? wubrg(c.colors) : (c.resolved && c.sid ? ['C'] : []);
   const thumb = h(c.uri ? 'a' : 'span', { class: 'thumb', href: c.uri || null, target: c.uri ? '_blank' : null, rel: c.uri ? 'noopener noreferrer' : null, title: c.uri ? 'Scryfallでカードを見る' : null },
     c.img ? h('img', { src: c.img, alt: '', loading: 'lazy' }) : null);
   return h('li', { class: 'row' + (c.bought ? ' is-bought' : ''), dataset: { id: c.id } },
@@ -947,7 +1278,11 @@ function renderSync() {
   }
 }
 
-function render() { renderFilters(); renderSummary(); renderList(); }
+function render() {
+  renderFilters(); renderSummary(); renderList();
+  if (state.route.view === 'play') { if (!play.g || play.deckId !== state.route.id) renderPlay(); }   // 回している途中の盤面は、同期が来ても描き直さない
+  else if (state.route.view !== 'list') renderDeckView();
+}
 function saveUi() { lsSet(LS.ui, state.ui); }
 
 /* ---------- お知らせ ---------- */
@@ -1015,54 +1350,779 @@ function parseBulk(text) {
   return { header, items };
 }
 
-/* ---------- カード名の候補 ---------- */
-const sug = { items: [], active: -1, token: 0, composing: false, timer: null };
-function closeSuggest() { $('suggest').hidden = true; $('fName').setAttribute('aria-expanded', 'false'); sug.items = []; sug.active = -1; }
-function paintSuggest(hint) {
-  const ul = $('suggest');
-  if (!sug.items.length && !hint) return closeSuggest();
-  ul.replaceChildren(...(sug.items.length
-    ? sug.items.map((it, i) => h('li', { role: 'option', id: 'sug' + i, 'aria-selected': String(i === sug.active), onmousedown: e => { e.preventDefault(); chooseSuggest(i); } },
-        h('span', { text: it.nameJa || it.name }), it.nameJa ? h('span', { class: 'en', text: it.name }) : null))
-    : [h('li', { class: 'hint', text: hint })]));
-  ul.hidden = false;
-  $('fName').setAttribute('aria-expanded', 'true');
-}
-function chooseSuggest(i) {
-  const it = sug.items[i]; if (!it) return;
-  state.sel = it;
-  $('fName').value = it.nameJa || it.name;
-  nameError('');
-  closeSuggest();
+/* ---------- カード名の候補 ----------
+   入力欄の下に候補を出す部品。購入リストとデッキの両方の入力欄で使う。 */
+function makeSuggest(input, ul, opts) {
+  const st = { items: [], active: -1, token: 0, composing: false, timer: null };
+  const close = () => { ul.hidden = true; input.setAttribute('aria-expanded', 'false'); st.items = []; st.active = -1; };
+  const paint = hint => {
+    if (!st.items.length && !hint) return close();
+    ul.replaceChildren(...(st.items.length
+      ? st.items.map((it, i) => h('li', { role: 'option', id: ul.id + '-' + i, 'aria-selected': String(i === st.active), onmousedown: e => { e.preventDefault(); choose(i); } },
+          h('span', { text: it.nameJa || it.name }), it.nameJa ? h('span', { class: 'en', text: it.name }) : null))
+      : [h('li', { class: 'hint', text: hint })]));
+    ul.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  };
+  const choose = i => {
+    const it = st.items[i]; if (!it) return;
+    input.value = it.nameJa || it.name;
+    close();
+    opts.onPick(it);
+  };
+  const onInput = () => {
+    opts.onType();
+    clearTimeout(st.timer);
+    const text = input.value.trim();
+    const token = ++st.token;
+    if (text.length < 2 && !(isJa(text) && text.length >= 1)) return close();
+    st.items = []; st.active = -1;                 // 前の入力の候補は残さない(古い候補を選んでしまうのを防ぐ)
+    paint('候補を探しています…');
+    const wanted = () => token === st.token;
+    st.timer = setTimeout(async () => {
+      try {
+        const items = isJa(text) ? (await searchJa(text, wanted)).slice(0, 8) : await autocompleteEn(text, wanted);
+        if (!wanted()) return;
+        st.items = items; st.active = -1;
+        // 変換の途中は「見つからない」と出さない(確定すると見つかることが多いため)
+        if (items.length) paint();
+        else if (st.composing) close();
+        else paint('候補が見つかりません。別の書き方を試してください。');
+      } catch { if (wanted()) close(); }
+    }, 250);
+  };
+  input.addEventListener('input', onInput);
+  input.addEventListener('compositionstart', () => { st.composing = true; });
+  input.addEventListener('compositionend', () => { st.composing = false; onInput(); });   // 確定した文字で候補を出し直す
+  input.addEventListener('blur', () => setTimeout(close, 120));
+  input.addEventListener('keydown', e => {
+    if (ul.hidden || !st.items.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      st.active = (st.active + (e.key === 'ArrowDown' ? 1 : -1) + st.items.length) % st.items.length;
+      paint();
+      input.setAttribute('aria-activedescendant', ul.id + '-' + st.active);
+    } else if (e.key === 'Enter' && st.active >= 0 && !e.isComposing) {
+      e.preventDefault(); choose(st.active);
+    } else if (e.key === 'Escape') close();
+  });
+  return {
+    cancel() { clearTimeout(st.timer); st.token++; close(); },        // 探している途中の候補を捨てて閉じる
+    show(items) { st.items = items; st.active = -1; paint(); },       // 候補をこちらから出す
+  };
 }
 function nameError(text) { $('nameErr').textContent = text || ''; $('nameErr').hidden = !text; }
-function onNameInput() {
-  state.sel = null;
-  nameError('');
-  clearTimeout(sug.timer);
-  const text = $('fName').value.trim();
-  const token = ++sug.token;
-  if (text.length < 2 && !(isJa(text) && text.length >= 1)) return closeSuggest();
-  sug.items = []; sug.active = -1;                 // 前の入力の候補は残さない(古い候補を選んでしまうのを防ぐ)
-  paintSuggest('候補を探しています…');
-  const wanted = () => token === sug.token;
-  sug.timer = setTimeout(async () => {
+
+/* ---------- デッキ管理(統率者) ----------
+   デッキ1つを、暗号化した1件のデータとして保存する。
+   別のデッキや購入リストとの照合は「表面のカード名(英語、小文字)」で行う。 */
+const TYPE_ORDER = ['C', 'P', 'I', 'S', 'A', 'E', 'B', 'L', 'O'];
+const TYPE_WORD = { C: 'クリーチャー', P: 'プレインズウォーカー', I: 'インスタント', S: 'ソーサリー', A: 'アーティファクト', E: 'エンチャント', B: 'バトル', L: '土地', O: 'その他' };
+const frontName = n => String(n || '').split(/\s*\/\/?\s*/)[0].trim();        // 「A // B」「A/B」の表面の名前
+// 照合用の名前: 全角・半角、アクセント記号(Lórien と Lorien)、アポストロフィの違いは同じとみなす
+const nameKey = n => frontName(n).normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[’‘`]/g, "'").replace(/\s+/g, ' ').toLowerCase();
+const thumbUrl = id => (id ? `https://cards.scryfall.io/small/front/${id[0]}/${id[1]}/${id}.jpg` : null);
+const isFree = c => /[ab]/.test(c.f);                                          // 基本土地と「何枚でも入れられる」カード
+
+// デッキのカード1枚。n=英語名 j=日本語名 q=枚数 t=種類 c=固有色 s=画像用のID f=印(b=基本土地 a=何枚でも可 r=使いまわし)
+function cleanDeckCard(o) {
+  o = o && typeof o === 'object' ? o : {};
+  const qn = Math.round(plainNum(o.q));
+  return {
+    n: text(o.n, 200), j: o.j ? text(o.j, 200) : null, q: qn >= 1 && qn <= 99 ? qn : 1,
+    t: TYPE_ORDER.includes(o.t) ? o.t : 'O',
+    c: Array.isArray(o.c) ? o.c.filter(x => typeof x === 'string' && x.length === 1 && 'WUBRG'.includes(x)).slice(0, 5) : [],
+    s: /^[0-9a-z-]{1,64}$/i.test(o.s || '') ? o.s : null,
+    f: text(o.f, 4).replace(/[^abr]/g, ''),
+  };
+}
+function cleanDeck(o) {
+  o = o && typeof o === 'object' ? o : {};
+  const list = a => (Array.isArray(a) ? a.slice(0, 400).map(cleanDeckCard).filter(c => c.n) : []);
+  return { id: text(o.id, 80), name: text(o.name, 60).trim() || '名前のないデッキ', commanders: list(o.commanders).slice(0, 2), cards: list(o.cards), createdAt: plainNum(o.createdAt) || 0, updatedAt: plainNum(o.updatedAt) || 0 };
+}
+function localDecks() { const a = lsGet(LS.decks, []); return Array.isArray(a) ? a.map(cleanDeck).filter(d => d.id) : []; }
+
+async function saveDeck(deck, keepTime) {
+  deck = cleanDeck(Object.assign({}, deck, keepTime ? {} : { updatedAt: Date.now() }));
+  const i = state.decks.findIndex(d => d.id === deck.id);
+  if (i >= 0) state.decks[i] = deck; else state.decks.push(deck);
+  if (state.mode === 'cloud') {
+    try { await cloud.deckCol.doc(deck.id).set(await seal(deck)); } catch (e) { console.error(e); alertBar('デッキを保存できませんでした。通信状態を確認してください。'); }
+  } else {
+    lsSet(LS.decks, state.decks);
+  }
+  render();
+  return deck;
+}
+async function removeDeck(id) {
+  state.decks = state.decks.filter(d => d.id !== id);
+  if (state.mode === 'cloud') {
+    try { await cloud.deckCol.doc(id).delete(); } catch (e) { console.error(e); alertBar('デッキを削除できませんでした。通信状態を確認してください。'); }
+  } else {
+    lsSet(LS.decks, state.decks);
+  }
+  render();
+}
+
+const allCards = d => d.commanders.concat(d.cards);
+const deckCount = d => allCards(d).reduce((n, c) => n + c.q, 0);
+const deckColors = d => [...'WUBRG'].filter(x => d.commanders.some(c => c.c.includes(x)));
+const inDeck = (d, name) => allCards(d).some(c => nameKey(c.n) === nameKey(name));
+// 購入リストで、このデッキに入れる予定になっていて、まだデッキに入っていないカード
+const wishFor = d => state.cards.filter(c => c.resolved && c.status !== 'notfound' && (c.deck || '').trim() === d.name && !inDeck(d, c.name))
+  .sort((a, b) => Number(a.bought) - Number(b.bought) || a.priority - b.priority || (a.nameJa || a.name).localeCompare(b.nameJa || b.name, 'ja'));
+// 「使いまわし」の印を付けたカード: 表面の名前 → そのカードが入っているデッキ。
+// 印は自分で付ける。どれか1つのデッキで付けると、同じカードが入っているデッキすべてに出る。
+function reuseIndex() {
+  const flagged = new Set();
+  for (const d of state.decks) for (const c of allCards(d)) if (c.f.includes('r')) flagged.add(nameKey(c.n));
+  const m = new Map();
+  if (!flagged.size) return m;
+  for (const d of state.decks) for (const c of allCards(d)) {
+    const k = nameKey(c.n);
+    if (!flagged.has(k)) continue;
+    if (!m.has(k)) m.set(k, { card: c, decks: [] });
+    if (!m.get(k).decks.includes(d)) m.get(k).decks.push(d);
+  }
+  return m;
+}
+// 印を付ける・外す。同じカードが入っているデッキすべてに書き込む(片方のデッキを消しても印が残るように)。
+async function setReuse(name, on) {
+  const k = nameKey(name);
+  for (const d of state.decks.slice()) {
+    if (!allCards(d).some(c => nameKey(c.n) === k && c.f.includes('r') !== on)) continue;
+    const next = mergeInto(d, []).deck;
+    for (const c of allCards(next)) if (nameKey(c.n) === k) c.f = c.f.replace('r', '') + (on ? 'r' : '');
+    await saveDeck(next);
+  }
+}
+
+/* --- Scryfallからデッキ用の情報を取る --- */
+function typeOf(card) {
+  const t = String(card.type_line || ((card.card_faces || [])[0] || {}).type_line || '').split(' // ')[0];
+  for (const [word, code] of [['Creature', 'C'], ['Land', 'L'], ['Planeswalker', 'P'], ['Instant', 'I'], ['Sorcery', 'S'], ['Artifact', 'A'], ['Enchantment', 'E'], ['Battle', 'B']]) if (t.includes(word)) return code;
+  return 'O';
+}
+function flagsOf(card) {
+  const t = String(card.type_line || ''), o = card.oracle_text || (card.card_faces || []).map(f => f.oracle_text || '').join(' ');
+  return (t.includes('Basic') && t.includes('Land') ? 'b' : '') + (/A deck can have (any number of|up to \w+) cards named/i.test(o) ? 'a' : '');
+}
+const toDeckCard = (card, ja) => ({ n: card.name, j: ja || null, q: 1, t: typeOf(card), c: card.color_identity || [], s: card.id, f: flagsOf(card) });
+
+// カード名(日本語でも英語でも)をまとめて調べる。戻り値: 表面の名前(小文字) → デッキ用のカード
+// 100枚でも数回の通信で済むよう、名前を「または」でつないで一度に探す。
+// 完全一致で探すときの書き方。全角の「＝」「！」などは半角にしないと当たらない(実際の応答で確認)
+const exactTerm = n => bare(n).normalize('NFKC');
+async function resolveDeckNames(names, progress) {
+  const want = new Map();
+  for (const n of names) { const k = nameKey(n); if (k && !want.has(k)) want.set(k, frontName(n)); }
+  const found = new Map();
+  const keys = [...want.keys()];
+  const batches = []; let cur = [], len = 0;
+  for (const k of keys) {
+    const part = exactTerm(want.get(k)).length + 8;
+    if (cur.length >= 24 || len + part > 820) { batches.push(cur); cur = []; len = 0; }
+    cur.push(k); len += part;
+  }
+  if (cur.length) batches.push(cur);
+  const steps = batches.length + 1; let done = 0;
+  const tick = () => { done++; if (progress) progress(Math.min(done, steps), steps); };
+  // 1. 日本語版がある名前は、ここで日本語名も一緒に分かる
+  for (const batch of batches) {
+    const res = await sfFetch('/cards/search?unique=cards&q=' + q('lang:ja (' + batch.map(k => '!"' + exactTerm(want.get(k)) + '"').join(' or ') + ')'));
+    for (const c of (res && res.data) || []) {
+      const ja = jaNameOf(c);
+      for (const k of [nameKey(c.name), ja ? nameKey(ja) : null]) if (k && want.has(k) && !found.has(k)) found.set(k, toDeckCard(c, ja));
+    }
+    tick();
+  }
+  const byName = async list => {          // 英語名でまとめて取る(75枚ごと)
+    const out = new Map();
+    for (let i = 0; i < list.length; i += 75) {
+      const res = await sfFetch('/cards/collection', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ identifiers: list.slice(i, i + 75).map(n => ({ name: frontName(n) })) }) });
+      for (const c of (res && res.data) || []) out.set(nameKey(c.name), c);
+    }
+    return out;
+  };
+  // 2. 日本語版がない英語名は、英語版の情報で埋める
+  const restEn = keys.filter(k => !found.has(k) && !isJa(want.get(k)));
+  if (restEn.length) { const got = await byName(restEn.map(k => want.get(k))); for (const k of restEn) if (got.has(k)) found.set(k, toDeckCard(got.get(k), null)); }
+  // 3. 日本語名が完全には一致しなかったものは、1枚ずつ探す(多すぎるときは20枚まで)
+  const restJa = keys.filter(k => !found.has(k) && isJa(want.get(k))).slice(0, 20);
+  const loose = [];
+  for (const k of restJa) {
+    const hits = await searchJaOnce(want.get(k));
+    const hit = hits.find(x => nameKey(x.nameJa) === k) || (hits.length === 1 ? hits[0] : null);
+    if (hit) loose.push([k, hit]);
+  }
+  if (loose.length) { const got = await byName(loose.map(([, hit]) => hit.name)); for (const [k, hit] of loose) { const c = got.get(nameKey(hit.name)); if (c) found.set(k, toDeckCard(c, hit.nameJa)); } }
+  tick();
+  return found;
+}
+
+// カードをデッキに足す。同じカードがすでにあるときは、基本土地などだけ枚数を増やす。
+function mergeInto(deck, cards) {
+  const next = Object.assign({}, deck, { commanders: deck.commanders.map(c => Object.assign({}, c)), cards: deck.cards.map(c => Object.assign({}, c)) });
+  let added = 0, dup = 0;
+  const flagged = cards.length ? reuseIndex() : null;      // 使いまわしの印が付いているカードは、足すときに印も引き継ぐ
+  for (const c of cards) {
+    const have = allCards(next).find(x => nameKey(x.n) === nameKey(c.n));
+    if (!have) { next.cards.push(Object.assign({}, c, { f: c.f.replace('r', '') + (flagged.has(nameKey(c.n)) ? 'r' : '') })); added += c.q; }
+    else if (isFree(have)) { have.q = Math.min(99, have.q + c.q); added += c.q; }
+    else dup++;
+  }
+  return { deck: next, added, dup };
+}
+
+/* --- 晴れる屋のデッキリスト(貼り付けた文字)を読む ---
+   晴れる屋の「エクスポート」は次の形で出る。
+     MTGアリーナ / 日本語テキストをコピー:  「Commander(統率者)」の見出し → 統率者 → 空行 → 「Deck(デッキ)」の見出し → カード
+     Magic Online:                          カード → 空行 → 統率者(見出しなし)
+   1行は「枚数 カード名」。
+   デッキ検索のページをそのままコピーした形(「統率者(1)」「土地(45)」の見出し、枚数と《カード名》が別の行)も読める。 */
+const DECK_HEAD = [
+  [/^(commander|統率者)$/i, 'cmd'],
+  [/^(deck|main|mainboard|main deck|lands?|creatures?|spells?|デッキ|メイン|メインボード|メインデッキ|土地|クリーチャー|呪文)$/i, 'main'],
+  [/^(sideboard|side|サイドボード|サイド|companion|相棒|maybeboard|検討中)$/i, 'skip'],
+];
+function parseDeckText(input) {
+  const blocks = [[]]; let section = 'main', sawHead = false, skipped = 0, pending = 0;
+  const cap = n => Math.min(99, Math.max(1, n));
+  for (const rawLine of String(input || '').split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) { if (blocks[blocks.length - 1].length) blocks.push([]); continue; }
+    const title = line.replace(/\s*[:：]?\s*(?:[(（]\d+[)）]|\d+)?\s*$/, '');          // 「土地(45)」「統率者: 2」の枚数を外した見出し
+    const head = DECK_HEAD.find(([re]) => re.test(title));
+    if (head) { section = head[1]; sawHead = true; pending = 0; continue; }
+    const alone = line.match(/^[xX×]?\s*(\d{1,2})\s*[xX×枚]?$/);                       // 枚数だけの行: 次の行のカードの枚数
+    if (alone) { pending = parseInt(alone[1], 10); continue; }
+    const m = line.match(/^(\d+)\s*[xX×枚]?\s+(.+)$/);
+    const name = (m ? m[2] : line).replace(/\s+\([A-Za-z0-9]{2,6}\)(\s+\S+)?\s*$/, '')   // 「(MH2) 123」のようなセット表記は外す
+      .replace(/^《(.+)》$/, '$1').trim();
+    const count = m ? parseInt(m[1], 10) : (pending || 1);
+    pending = 0;
+    if (!name) continue;
+    if (section === 'skip') { skipped++; continue; }
+    blocks[blocks.length - 1].push({ q: cap(count), name, raw: m ? line : (count === 1 ? '' : count + ' ') + name, sec: section });
+  }
+  const filled = blocks.filter(b => b.length);
+  const qty = arr => arr.reduce((n, x) => n + x.q, 0);
+  // 見出しがない形: 合計が100枚で、最後のかたまりが2枚以下なら、そこを統率者とみなす
+  if (!sawHead && filled.length >= 2 && qty(filled[filled.length - 1]) <= 2 && qty(filled.flat()) === 100) for (const x of filled[filled.length - 1]) x.sec = 'cmd';
+  const merged = new Map();                       // 同じ名前の行は枚数を足す
+  for (const x of filled.flat()) { const k = x.sec + '|' + nameKey(x.name); if (merged.has(k)) merged.get(k).q += x.q; else merged.set(k, Object.assign({}, x)); }
+  const items = [...merged.values()];
+  const cmd = items.filter(x => x.sec === 'cmd');
+  return { commanders: cmd.slice(0, 2), cards: cmd.slice(2).concat(items.filter(x => x.sec === 'main')), skipped };
+}
+
+// 貼り付けたリストをデッキにする。deck が null なら新しく作る。
+async function importDeckText({ deck, name, input, mode, progress }) {
+  const parsed = parseDeckText(input);
+  const entries = parsed.commanders.concat(parsed.cards);
+  const found = await resolveDeckNames(entries.map(x => x.name), progress);
+  const missing = [];
+  const take = arr => arr.flatMap(x => { const dc = found.get(nameKey(x.name)); if (!dc) { missing.push(x.raw); return []; } return [Object.assign({}, dc, { q: x.q })]; });
+  const flagged = reuseIndex();
+  const commanders = take(parsed.commanders).map(c => (flagged.has(nameKey(c.n)) ? Object.assign({}, c, { f: c.f + 'r' }) : c)), cards = take(parsed.cards);
+  let next;
+  if (!deck) {
+    const lead = commanders[0];
+    next = { id: newId(), name: name || (lead ? lead.j || lead.n : '新しいデッキ'), commanders, cards: [], createdAt: Date.now() };
+    next = mergeInto(next, cards).deck;
+  } else if (mode === 'append') {
+    next = mergeInto(deck, (deck.commanders.length ? commanders : []).concat(cards)).deck;
+    if (!deck.commanders.length) next.commanders = commanders;
+  } else {
+    next = Object.assign({}, deck, { commanders: commanders.length ? commanders : deck.commanders, cards: [] });
+    next = mergeInto(next, cards).deck;
+  }
+  const saved = await saveDeck(next);
+  return { deck: saved, count: commanders.concat(cards).reduce((n, c) => n + c.q, 0), missing, skipped: parsed.skipped };
+}
+
+/* --- 候補リスト(購入リストでこのデッキ宛てになっているカード)からデッキへ --- */
+async function putInDeck(card, deck, btn) {
+  const label = card.nameJa || card.name;
+  if (btn) { btn.disabled = true; btn.textContent = '入れています…'; }
+  try {
+    const dc = (await resolveDeckNames([card.name])).get(nameKey(card.name));
+    if (!dc) { toast('カードの情報を取得できませんでした。少し待ってからもう一度試してください。'); return render(); }
+    if (!dc.j && card.nameJa) dc.j = card.nameJa;
+    const before = state.decks.find(d => d.id === deck.id) || deck;
+    const r = mergeInto(before, [dc]);
+    if (!r.added) { toast(`「${label}」は、すでに「${before.name}」に入っています`); return render(); }
+    await saveDeck(r.deck);
+    if ((card.deck || '').trim() !== before.name) await patch(card.id, { deck: before.name });
+    toast(`「${label}」を「${before.name}」に入れました`, { label: '元に戻す', run: () => saveDeck(before) });
+  } catch (e) {
+    console.error(e);
+    toast('デッキに入れられませんでした。通信状態を確かめて、もう一度試してください。');
+    render();
+  }
+}
+
+// デッキのカードを購入リストへ。入れる予定のデッキには、このデッキの名前が入る。
+function addToBuy(c, deck) {
+  const id = newId(), label = c.j || c.n;
+  addCard({ id, text: label, sel: { name: c.n, nameJa: c.j }, priority: 2, deck: deck.name, memo: '' });
+  toast(`「${label}」を購入リストに追加しました(デッキ: ${deck.name})`, { label: '元に戻す', run: () => removeCard(id) });
+}
+
+/* --- 画面 --- */
+function readRoute() {
+  let v = location.hash.replace(/^#/, '');
+  try { v = decodeURIComponent(v); } catch { /* 読めない形ならそのまま使う */ }
+  if (v === 'decks') return { view: 'decks' };
+  if (v.startsWith('deck-')) return { view: 'deck', id: v.slice(5) };
+  if (v.startsWith('play-')) return { view: 'play', id: v.slice(5) };
+  return { view: 'list' };
+}
+function applyRoute() {
+  const r = state.route = readRoute();
+  const playing = r.view === 'play';
+  document.body.classList.toggle('playing', playing);
+  $('app').hidden = !state.started || r.view !== 'list';
+  $('deckApp').hidden = !state.started || r.view === 'list' || playing;
+  $('playApp').hidden = !state.started || !playing;
+  if (playing) { renderPlay(); window.scrollTo(0, 0); return; }
+  document.title = 'MTG購入リスト';
+  $('tabList').toggleAttribute('aria-current', r.view === 'list'); if (r.view === 'list') $('tabList').setAttribute('aria-current', 'page');
+  $('tabDecks').toggleAttribute('aria-current', r.view !== 'list'); if (r.view !== 'list') $('tabDecks').setAttribute('aria-current', 'page');
+  if (r.view !== 'list') { deckErrMsg(''); renderDeckView(); window.scrollTo(0, 0); } else render();
+}
+const wubrg = colors => [...'WUBRG'].filter(x => colors.includes(x));
+const manaEls = (colors, known) => (colors.length ? wubrg(colors) : (known ? ['C'] : [])).map(x => h('img', { class: 'mana', src: MANA + x + '.svg', alt: COLOR_WORD[x] || x, width: 17, height: 17, loading: 'lazy' }));
+const thumbEl = c => h('span', { class: 'thumb' }, c.s ? h('img', { src: thumbUrl(c.s), alt: '', loading: 'lazy' }) : null);
+function deckErrMsg(text) { $('dErr').textContent = text || ''; $('dErr').hidden = !text; }
+
+function renderDeckView() {
+  const r = state.route;
+  $('deckAlert').hidden = !state.deckErr;
+  if (state.deckErr) $('deckAlertText').textContent = 'デッキを保存する準備がまだできていません。このアプリを配っている人の設定が終わると、使えるようになります。';
+  $('deckNew').disabled = state.deckErr || !state.decksLoaded;
+  $('deckIndex').hidden = r.view !== 'decks';
+  $('deckDetail').hidden = r.view !== 'deck';
+  if (r.view === 'decks') renderDeckIndex(); else renderDeckDetail(r.id);
+}
+
+function renderDeckIndex() {
+  const reuse = reuseIndex();
+  const decks = state.decks.slice().sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  $('deckCount').textContent = decks.length ? `${decks.length}個` : '';
+  const tiles = $('deckTiles');
+  if (!state.decksLoaded) tiles.replaceChildren(h('li', { class: 'empty' }, h('strong', { text: 'デッキを読み込み中…' })));
+  else if (!decks.length) tiles.replaceChildren(h('li', { class: 'empty' }, h('strong', { text: 'まだデッキがありません' }), state.deckErr ? '' : '「新しいデッキ」を押して、晴れる屋のデッキリストを貼り付けると登録できます。'));
+  else tiles.replaceChildren(...decks.map(d => {
+    const n = deckCount(d), shared = allCards(d).filter(c => reuse.has(nameKey(c.n))).length, cand = wishFor(d).length;
+    return h('li', { class: 'tile' }, h('a', { href: '#deck-' + q(d.id) },
+      h('span', { class: 'thumbs' }, d.commanders.length ? d.commanders.map(thumbEl) : h('span', { class: 'thumb' })),
+      h('span', null,
+        h('span', { class: 'tname', text: d.name }), h('br'),
+        h('span', { class: 'tsub', text: d.commanders.length ? d.commanders.map(c => c.j || c.n).join(' / ') : '統率者が決まっていません' }),
+        h('span', { class: 'tmeta' },
+          h('span', { class: 'c-color' }, manaEls(deckColors(d), d.commanders.length > 0)),
+          h('span', { class: 'num', text: `${n} / 100枚` }),
+          shared ? h('span', { class: 'chip reuse', text: `使いまわし ${shared}枚` }) : null,
+          cand ? h('span', { class: 'chip miss', text: `候補 ${cand}枚` }) : null))),
+      h('div', { class: 'tfoot' }, h('button', { class: 'btn small', type: 'button', text: '一人回し', disabled: !n, 'aria-label': d.name + ' を一人回しする', onclick: () => openPlay(d) })));
+  }));
+  const rows = [...reuse.values()].sort((a, b) => b.decks.length - a.decks.length || (a.card.j || a.card.n).localeCompare(b.card.j || b.card.n, 'ja'));
+  $('reuseBox').hidden = !rows.length;
+  $('reuseRows').replaceChildren(...rows.map(v => h('li', { class: 'rrow' },
+    h('span', null, h('span', { class: 'n1', text: v.card.j || v.card.n }), v.card.j ? h('span', { class: 'n2', text: ' ' + v.card.n }) : null),
+    h('span', { class: 'with' }, v.decks.map(d => h('a', { href: '#deck-' + q(d.id), text: d.name })), v.decks.length < 2 ? '(ほかのデッキにはまだ入っていません)' : null))));
+}
+
+function renderDeckDetail(id) {
+  const deck = state.decks.find(d => d.id === id);
+  $('deckBody').hidden = !deck;
+  $('deckMissing').hidden = !!deck;
+  if (!deck) { $('deckMissing').replaceChildren(h('strong', { text: state.decksLoaded ? 'このデッキは見つかりません' : 'デッキを読み込み中…' }), state.decksLoaded ? '削除されたか、別のリストに切り替わった可能性があります。' : ''); return; }
+  if (document.activeElement !== $('dName')) $('dName').value = deck.name;
+  const reuse = reuseIndex();
+  const ci = deck.commanders.length ? new Set(deckColors(deck)) : null;
+  const offColor = c => !!ci && c.c.some(x => !ci.has(x));
+  const n = deckCount(deck);
+  const bad = deck.cards.filter(offColor).length, multi = allCards(deck).filter(c => c.q > 1 && !isFree(c)).length;
+  const shared = allCards(deck).filter(c => reuse.has(nameKey(c.n))).length;
+  const cand = wishFor(deck);     // 候補リスト: 購入リストでこのデッキに入れる予定になっていて、まだ入っていないカード
+  $('dSummary').replaceChildren(...[
+    h('span', null, h('span', { class: 'lbl', text: '枚数' }), h('span', { class: 'big', text: String(n) }), h('span', { class: 'num', text: ' / 100' }), n === 100 ? null : h('span', { class: 'with', text: n < 100 ? ` あと${100 - n}枚` : ` ${n - 100}枚多い` })),
+    h('span', null, h('span', { class: 'lbl', text: '固有色' }), deck.commanders.length ? h('span', { class: 'c-color' }, manaEls(deckColors(deck), true)) : h('span', { class: 'with', text: '統率者が決まると表示されます' })),
+    shared ? h('span', { class: 'chip reuse', text: `使いまわし ${shared}枚` }) : null,
+    bad ? h('span', { class: 'chip bad', text: `固有色が合わない ${bad}枚` }) : null,
+    multi ? h('span', { class: 'chip bad', text: `2枚以上入っている ${multi}種類` }) : null,
+    cand.length ? h('span', { class: 'chip miss', text: `候補 ${cand.length}枚がまだ入っていません` }) : null].filter(Boolean));
+
+  const row = (c, isCmd) => {
+    const main = c.j || c.n, key = nameKey(c.n);
+    const flagged = reuse.get(key), others = flagged ? flagged.decks.filter(d => d.id !== deck.id) : [];
+    const buy = state.cards.find(x => x.status !== 'notfound' && nameKey(x.name) === key);      // 購入リストに同じカードがあるか
+    const change = fn => { const next = mergeInto(deck, []).deck; fn(next, (isCmd ? next.commanders : next.cards)); return saveDeck(next); };
+    const idx = list => list.findIndex(x => nameKey(x.n) === nameKey(c.n));
+    const remove = () => { change((d, list) => list.splice(idx(list), 1)); toast(`「${main}」をデッキから外しました`, { label: '元に戻す', run: () => saveDeck(deck) }); };
+    return h('li', { class: 'drow', dataset: { name: c.n } },
+      h('div', { class: 'd-thumb' }, thumbEl(c)),
+      h('div', { class: 'd-name names' }, h('span', { class: 'n1', text: main }), c.j ? h('span', { class: 'n2', text: c.n }) : null),
+      h('div', { class: 'c-color', title: '固有色: ' + (c.c.length ? c.c.map(x => COLOR_WORD[x]).join('') : '無色') }, manaEls(c.c, true)),
+      h('div', { class: 'd-qty' }, isFree(c) && !isCmd
+        ? [h('button', { type: 'button', text: '−', 'aria-label': main + ' を1枚減らす', onclick: () => (c.q > 1 ? change((d, list) => { list[idx(list)].q = c.q - 1; }) : remove()) }),
+           h('span', { class: 'num', text: '×' + c.q }),
+           h('button', { type: 'button', text: '+', 'aria-label': main + ' を1枚増やす', onclick: () => change((d, list) => { list[idx(list)].q = Math.min(99, c.q + 1); }) })]
+        : h('span', { class: 'num', text: '×' + c.q })),
+      h('div', { class: 'd-marks' },
+        flagged ? [h('span', { class: 'chip reuse', text: '使いまわし' }), h('span', { class: 'with' }, others.length ? ['ほかに ', others.flatMap((d, i) => [i ? '、' : '', h('a', { href: '#deck-' + q(d.id), text: d.name })])] : 'ほかのデッキにはまだ入っていません')] : null,
+        buy && !buy.bought ? h('span', { class: 'chip wish', title: '購入リストにあり、まだ買っていません', text: '未購入' }) : null,
+        buy && buy.bought ? h('span', { class: 'chip done', title: '購入リストで購入済みになっています', text: '購入済み' }) : null,
+        !isCmd && offColor(c) ? h('span', { class: 'chip bad', title: '統率者の固有色にない色を含んでいます', text: '固有色が合わない' }) : null,
+        c.q > 1 && !isFree(c) ? h('span', { class: 'chip bad', title: '統率者戦では同じカードは1枚までです', text: '2枚以上' }) : null),
+      h('div', { class: 'd-act' },
+        c.f.includes('b') ? null : h('button', { class: 'mini', type: 'button', 'aria-pressed': String(!!flagged), text: flagged ? '使いまわし ✓' : '使いまわしにする',
+          title: flagged ? '使いまわしの印を外す' : 'ほかのデッキと使いまわすカードとして印を付ける', 'aria-label': main + (flagged ? ' の使いまわしの印を外す' : ' に使いまわしの印を付ける'), onclick: () => setReuse(c.n, !flagged) }),
+        buy || c.f.includes('b') ? null : h('button', { class: 'mini', type: 'button', text: '購入リストに追加', 'aria-label': main + ' を購入リストに追加', onclick: () => addToBuy(c, deck) }),
+        isCmd
+        ? h('button', { class: 'linkbtn', type: 'button', text: '統率者から外す', onclick: () => change(d => { d.commanders.splice(d.commanders.findIndex(x => nameKey(x.n) === nameKey(c.n)), 1); d.cards.push(Object.assign({}, c)); }) })
+        : (!deck.commanders.length || (deck.commanders.length < 2 && 'CPE'.includes(c.t)) ? h('button', { class: 'linkbtn', type: 'button', text: '統率者にする', onclick: () => change(d => { d.cards.splice(d.cards.findIndex(x => nameKey(x.n) === nameKey(c.n)), 1); d.commanders.push(Object.assign({}, c, { q: 1 })); }) }) : null)),
+      h('div', { class: 'd-del' }, h('button', { class: 'del', type: 'button', text: '×', title: 'デッキから外す', 'aria-label': main + ' をデッキから外す', onclick: remove })));
+  };
+  $('dWishBox').hidden = !cand.length;
+  $('dWishCount').textContent = cand.length ? `${cand.length}枚` : '';
+  $('dWish').replaceChildren(...cand.map(c => {
+    const jpy = priceJpy(c), label = c.nameJa || c.name;
+    return h('li', { class: 'wrow', dataset: { name: c.name } },
+      h('div', null, h('span', { class: 'thumb' }, c.img ? h('img', { src: c.img, alt: '', loading: 'lazy' }) : null)),
+      h('div', { class: 'names' }, h('span', { class: 'n1', text: label }), c.nameJa && c.name !== c.nameJa ? h('span', { class: 'n2', text: c.name }) : null),
+      h('div', { class: 'c-color' }, manaEls(c.colors || [], !!c.sid)),
+      h('div', { class: 'w-price', text: c.usd == null ? '' : (jpy == null ? '$' + c.usd.toFixed(2) : yenFmt(jpy)) }),
+      h('div', { class: 'w-marks' }, h('span', { class: 'chip miss', text: 'デッキ未登録' }), h('span', { class: 'chip ' + (c.bought ? 'done' : 'wish'), text: c.bought ? '購入済み' : '未購入' })),
+      h('div', { class: 'w-act' }, h('button', { class: 'btn small', type: 'button', text: 'デッキに入れる', 'aria-label': label + ' をデッキに入れる', onclick: e => putInDeck(c, deck, e.currentTarget) })));
+  }));
+
+  const show = c => !state.reuseOnly || reuse.has(nameKey(c.n));
+  const byName = (a, b) => (a.j || a.n).localeCompare(b.j || b.n, 'ja');
+  const out = [];
+  const cmds = deck.commanders.filter(show);
+  if (cmds.length || !state.reuseOnly) out.push(h('li', { class: 'grp', text: `統率者 ${deck.commanders.reduce((k, c) => k + c.q, 0)}枚` }));
+  if (!deck.commanders.length && !state.reuseOnly) out.push(h('li', { class: 'empty', text: '統率者がまだ決まっていません。下のカードの「統率者にする」を押すと、ここに入ります。' }));
+  out.push(...cmds.map(c => row(c, true)));
+  for (const t of TYPE_ORDER) {
+    const all = deck.cards.filter(c => c.t === t), list = all.filter(show).sort(byName);
+    if (!list.length) continue;
+    out.push(h('li', { class: 'grp', text: `${TYPE_WORD[t]} ${all.reduce((k, c) => k + c.q, 0)}枚` }), ...list.map(c => row(c, false)));
+  }
+  if (!deck.cards.length && !state.reuseOnly) out.push(h('li', { class: 'empty' }, h('strong', { text: 'カードがまだ入っていません' }), '上の欄から1枚ずつ足すか、「晴れる屋から取り込む」でデッキリストを貼り付けてください。'));
+  if (state.reuseOnly && out.length === 0) out.push(h('li', { class: 'empty', text: '使いまわしの印を付けたカードはありません。カードの行の「使いまわしにする」で付けられます。' }));
+  $('dRows').replaceChildren(...out);
+  $('dReuseOnly').checked = state.reuseOnly;
+  $('dCount').textContent = `${allCards(deck).length}種類`;
+}
+
+/* --- デッキ画面の操作 --- */
+const imp = { deckId: null, busy: false };
+function openImport(deck) {
+  imp.deckId = deck ? deck.id : null;
+  $('impTitle').textContent = deck ? '晴れる屋から取り込む' : '新しいデッキ';
+  $('impNameWrap').hidden = !!deck; $('impNote').hidden = !!deck;
+  $('impModeWrap').hidden = !deck || !allCards(deck).length;
+  $('impGo').textContent = deck ? '取り込む' : '作成';
+  $('impName').value = ''; $('impText').value = '';
+  $('impErr').hidden = true; $('impStatus').hidden = true;
+  document.querySelector('input[name="impMode"][value="replace"]').checked = true;
+  $('impDlg').showModal();
+}
+function bindDecks() {
+  const cur = () => state.decks.find(d => d.id === state.route.id);
+  let picked = null, adding = false;
+  const dSug = makeSuggest($('dCard'), $('dSuggest'), { onPick: it => { picked = it; deckErrMsg(''); }, onType: () => { picked = null; deckErrMsg(''); } });
+
+  $('deckNew').addEventListener('click', () => openImport(null));
+  $('dImport').addEventListener('click', () => { const d = cur(); if (d) openImport(d); });
+  $('impClose').addEventListener('click', () => $('impDlg').close());
+  $('dReuseOnly').addEventListener('change', e => { state.reuseOnly = e.target.checked; renderDeckView(); });
+  $('dPlay').addEventListener('click', () => { const d = cur(); if (d) openPlay(d); });
+
+  $('dName').addEventListener('change', async e => {
+    const deck = cur(); if (!deck) return;
+    const name = e.target.value.trim().slice(0, 60);
+    if (!name || name === deck.name) { e.target.value = deck.name; return; }
+    const moved = state.cards.filter(c => (c.deck || '').trim() === deck.name).map(c => Object.assign({}, c, { deck: name }));
+    await saveDeck(Object.assign({}, deck, { name }));
+    await persistMany(moved);                       // 購入リストのデッキ欄も新しい名前に合わせる
+  });
+  $('dDelete').addEventListener('click', async () => {
+    const deck = cur(); if (!deck) return;
+    await removeDeck(deck.id);
+    location.hash = '#decks';
+    toast(`デッキ「${deck.name}」を削除しました`, { label: '元に戻す', run: () => saveDeck(deck, true) });
+  });
+
+  $('dAddForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const deck = cur(), input = $('dCard'), typed = input.value.trim();
+    if (!deck || !typed || adding) return;
+    let sel = picked;
+    dSug.cancel(); deckErrMsg('');
+    adding = true; $('dAddBtn').disabled = true; $('dAddBtn').textContent = '確認中…';
+    const done = () => { adding = false; $('dAddBtn').disabled = false; $('dAddBtn').textContent = 'デッキに追加'; };
     try {
-      const items = isJa(text) ? (await searchJa(text, wanted)).slice(0, 8) : await autocompleteEn(text, wanted);
-      if (!wanted()) return;
-      sug.items = items; sug.active = -1;
-      // 変換の途中は「見つからない」と出さない(確定すると見つかることが多いため)
-      if (items.length) paintSuggest();
-      else if (sug.composing) closeSuggest();
-      else paintSuggest('候補が見つかりません。別の書き方を試してください。');
-    } catch { if (wanted()) closeSuggest(); }
-  }, 250);
+      if (!sel) {
+        const r = await findCard(typed);
+        if (r.status === 'ok') sel = r.card;
+        else { done(); input.focus(); if (r.status === 'choose') { dSug.show(r.items); return deckErrMsg('候補が複数あります。下の候補から選んでください。'); } return deckErrMsg(`「${typed}」は見つかりませんでした。カード名の一部を入れると候補が出ます。`); }
+      }
+      const dc = (await resolveDeckNames([sel.name])).get(nameKey(sel.name));
+      if (!dc) { done(); return deckErrMsg(`「${typed}」の情報を取得できませんでした。`); }
+      if (!dc.j && sel.nameJa) dc.j = sel.nameJa;
+      const now = cur() || deck, r = mergeInto(now, [dc]);
+      done();
+      if (!r.added) return deckErrMsg(`「${dc.j || dc.n}」は、すでにこのデッキに入っています。`);
+      await saveDeck(r.deck);
+      picked = null; input.value = ''; input.focus();
+    } catch (err) {
+      console.error(err); done();
+      deckErrMsg('カードを検索できませんでした。通信状態を確かめて、もう一度試してください。');
+    }
+  });
+
+  $('impForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (imp.busy) return;
+    const err = t => { $('impErr').textContent = t || ''; $('impErr').hidden = !t; };
+    const status = t => { $('impStatus').textContent = t || ''; $('impStatus').hidden = !t; };
+    err(''); status('');
+    const input = $('impText').value, name = $('impName').value.trim().slice(0, 60);
+    const deck = imp.deckId ? state.decks.find(d => d.id === imp.deckId) : null;
+    const parsed = parseDeckText(input);
+    if (!parsed.commanders.length && !parsed.cards.length) {
+      if (deck || imp.deckId) return err('デッキリストを貼り付けてください。');
+      if (!name) return err('デッキ名を入れるか、デッキリストを貼り付けてください。');
+      const made = await saveDeck({ id: newId(), name, commanders: [], cards: [], createdAt: Date.now() });
+      $('impDlg').close(); location.hash = '#deck-' + q(made.id);
+      return;
+    }
+    imp.busy = true; $('impGo').disabled = true;
+    status('カードを確認しています…');
+    try {
+      const mode = (document.querySelector('input[name="impMode"]:checked') || {}).value || 'replace';
+      const r = await importDeckText({ deck, name, input, mode, progress: (a, b) => status(`カードを確認しています…(${a}/${b})`) });
+      location.hash = '#deck-' + q(r.deck.id);
+      if (r.missing.length) {
+        // 見つからなかった行だけを欄に残し、直して足せるようにする
+        imp.deckId = r.deck.id;
+        $('impTitle').textContent = '晴れる屋から取り込む'; $('impNameWrap').hidden = true; $('impNote').hidden = true; $('impModeWrap').hidden = false; $('impGo').textContent = '取り込む';
+        document.querySelector('input[name="impMode"][value="append"]').checked = true;
+        $('impText').value = r.missing.join('\n');
+        status(`${r.count}枚を取り込みました。次の${r.missing.length}行は見つかりませんでした。欄に残してあるので、カード名を直して、もう一度「取り込む」を押してください。`);
+      } else {
+        $('impDlg').close();
+        toast(`${r.count}枚を取り込みました` + (r.skipped ? `(サイドボードなどの${r.skipped}行は取り込んでいません)` : ''), null, 5000);
+      }
+    } catch (e2) {
+      console.error(e2); status('');
+      err('カードを確認できませんでした。通信状態を確かめて、もう一度試してください。');
+    }
+    imp.busy = false; $('impGo').disabled = false;
+  });
+}
+
+/* ---------- 一人回し ----------
+   デッキを切り直して、1人で回してみるための画面。別の窓で開く。
+   盤面はこの窓の中だけにあり、保存も同期もしない(閉じると消える)。 */
+const PZONE = { lib: 'ライブラリー', hand: '手札', bf: '戦場', gy: '墓地', ex: '追放', cmd: '統率領域' };
+const PZ_KEYS = Object.keys(PZONE);
+const play = { deckId: null, g: null, undo: [], sel: null, panel: null, note: '' };
+const bigUrl = id => (id ? `https://cards.scryfall.io/normal/front/${id[0]}/${id[1]}/${id}.jpg` : null);
+function randInt(n) {                      // 0以上n未満の、かたよりのない乱数
+  const lim = Math.floor(0x100000000 / n) * n, b = new Uint32Array(1);
+  do { crypto.getRandomValues(b); } while (b[0] >= lim);
+  return b[0] % n;
+}
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = randInt(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function openPlay(deck) {
+  const url = location.href.split('#')[0] + '#play-' + q(deck.id);
+  let w = null;
+  try { w = window.open(url, 'mtgplay', 'popup=yes,width=1320,height=880'); } catch { w = null; }
+  if (w) { try { w.focus(); } catch { /* 前に出せなくても開けていればよい */ } }
+  else location.hash = '#play-' + q(deck.id);          // 別の窓を開けない設定のときは、この画面で開く
+}
+
+function newGame(deck) {
+  const g = { turn: 1, life: 40, mull: 0, seq: 0, cards: {}, lib: [], hand: [], bf: [], gy: [], ex: [], cmd: [] };
+  const put = (c, zone, isCmd) => { const id = 'k' + (++g.seq); g.cards[id] = { n: c.n, j: c.j, t: c.t, s: c.s, cmd: isCmd, tap: false, ctr: 0, casts: 0, tok: false }; g[zone].push(id); };
+  for (const c of deck.commanders) put(c, 'cmd', true);
+  for (const c of deck.cards) for (let i = 0; i < c.q; i++) put(c, 'lib', false);
+  shuffle(g.lib);                                       // ライブラリーは先頭がいちばん上
+  g.hand = g.lib.splice(0, 7);
+  play.deckId = deck.id; play.g = g; play.sel = null; play.panel = null;
+  play.note = `デッキを切り直して、初手${g.hand.length}枚を引きました。`;
+}
+const pName = id => { const c = play.g.cards[id]; return c ? c.j || c.n : ''; };
+const zoneOf = id => PZ_KEYS.find(z => play.g[z].includes(id)) || null;
+// 操作の前の盤面を覚えてから実行する(「元に戻す」用)
+function act(fn, note) {
+  play.undo.push(JSON.stringify(play.g));
+  if (play.undo.length > 80) play.undo.shift();
+  const out = fn(play.g);
+  if (note != null) play.note = typeof note === 'function' ? note(out) : note;
+  renderPlay();
+}
+function moveCard(g, id, to, bottom) {
+  const from = PZ_KEYS.find(z => g[z].includes(id)), c = g.cards[id];
+  if (!from || !c) return;
+  g[from].splice(g[from].indexOf(id), 1);
+  if (from === 'bf') { c.tap = false; c.ctr = 0; }
+  if (c.tok && to !== 'bf') { delete g.cards[id]; return; }      // トークンは戦場を離れると消える
+  if (from === 'cmd' && to === 'bf') c.casts++;                   // 統率領域から唱えた回数(統率者税の計算用)
+  if (to === 'lib' && !bottom) g.lib.unshift(id); else g[to].push(id);
+}
+function drawCards(g, n) { let k = 0; while (k < n && g.lib.length) { g.hand.push(g.lib.shift()); k++; } return k; }
+
+function pCardEl(id, zone) {
+  const c = play.g.cards[id], name = c.j || c.n, onBf = zone === 'bf';
+  const face = c.s ? h('img', { src: thumbUrl(c.s), alt: name, loading: 'lazy' }) : h('span', { class: 'pname', text: name });
+  return h('div', { class: 'pcw' + (c.tap ? ' tap' : '') + (play.sel === id ? ' sel' : '') + (c.tok ? ' tok' : ''), dataset: { id, name: c.n } },
+    h('button', { class: 'pc', type: 'button', title: name, 'aria-label': name + (onBf ? (c.tap ? '(タップ中。押すとアンタップ)' : '(押すとタップ)') : ''),
+      onclick: () => (onBf ? act(g => { g.cards[id].tap = !g.cards[id].tap; }) : pickCard(id)), onmouseenter: () => showPreview(id) }, face),
+    onBf ? h('button', { class: 'pc-more', type: 'button', text: '…', title: '移動やカウンター', 'aria-label': name + ' の操作を開く', onclick: () => pickCard(id) }) : null,
+    c.ctr ? h('span', { class: 'pc-badge ctr', title: 'カウンター', text: (c.ctr > 0 ? '+' : '') + c.ctr }) : null,
+    zone === 'cmd' && c.casts ? h('span', { class: 'pc-badge tax', text: `統率者税 +${c.casts * 2}` }) : null);
+}
+function pickCard(id) { play.sel = play.sel === id ? null : id; renderPlay(); }
+function showPreview(id) {
+  const c = play.g && play.g.cards[id];
+  if (!c) return $('pPreview').replaceChildren(h('span', { class: 'none', text: 'カードにマウスを乗せるか、選ぶと表示されます。' }));
+  $('pPreview').replaceChildren(c.s ? h('img', { src: bigUrl(c.s), alt: c.j || c.n }) : h('div', { class: 'pname', text: c.j || c.n }));
+}
+
+// 選んだカードに対してできること
+function actionsFor(id) {
+  const g = play.g, c = g.cards[id], zone = zoneOf(id), name = pName(id);
+  const mv = (label, to, bottom, said) => ({ label, run: () => {
+    play.sel = null;
+    // 上から見ている途中のカードを動かしたら、見えている中から外す(上に戻したときだけ残す)
+    if (play.panel && play.panel.kind === 'peek' && !(to === 'lib' && !bottom)) play.panel.ids = play.panel.ids.filter(x => x !== id);
+    act(x => moveCard(x, id, to, bottom), `「${name}」を${said}。`);
+  } });
+  const A = {
+    bf: mv(zone === 'cmd' ? '唱える(戦場へ)' : '戦場に出す', 'bf', false, '戦場に出しました'),
+    hand: mv('手札へ', 'hand', false, '手札に戻しました'),
+    gy: mv(zone === 'hand' && 'IS'.includes(c.t) ? '唱える(墓地へ)' : '墓地へ', 'gy', false, '墓地に置きました'),
+    ex: mv('追放', 'ex', false, '追放しました'),
+    top: mv('ライブラリーの上へ', 'lib', false, 'ライブラリーの上に置きました'),
+    bottom: mv('ライブラリーの下へ', 'lib', true, 'ライブラリーの下に置きました'),
+    cmd: mv('統率領域へ', 'cmd', false, '統率領域に戻しました'),
+  };
+  if (c.tok) return [
+    { label: c.tap ? 'アンタップ' : 'タップ', run: () => act(x => { x.cards[id].tap = !x.cards[id].tap; }) },
+    { label: 'カウンター +1', run: () => act(x => { x.cards[id].ctr++; }) }, { label: 'カウンター −1', run: () => act(x => { x.cards[id].ctr--; }) },
+    mv('取り除く', 'gy', false, '取り除きました')];
+  const order = {
+    hand: 'IS'.includes(c.t) ? ['gy', 'bf', 'ex', 'top', 'bottom'] : ['bf', 'gy', 'ex', 'top', 'bottom'],
+    bf: ['hand', 'gy', 'ex', 'top', 'bottom'], gy: ['hand', 'bf', 'ex', 'top', 'bottom'], ex: ['hand', 'bf', 'gy', 'top', 'bottom'],
+    lib: ['hand', 'bf', 'gy', 'ex', 'top', 'bottom'], cmd: ['bf'],
+  }[zone] || [];
+  const list = order.map(k => A[k]);
+  if (zone === 'bf') list.unshift({ label: c.tap ? 'アンタップ' : 'タップ', run: () => act(x => { x.cards[id].tap = !x.cards[id].tap; }) });
+  if (zone === 'bf') list.push({ label: 'カウンター +1', run: () => act(x => { x.cards[id].ctr++; }) }, { label: 'カウンター −1', run: () => act(x => { x.cards[id].ctr--; }) });
+  if (c.cmd && zone !== 'cmd') list.push(A.cmd);
+  return list;
+}
+
+function panelCards() {
+  const g = play.g, p = play.panel;
+  if (!p) return null;
+  if (p.kind === 'peek') { p.ids = p.ids.filter(id => g.lib.includes(id)).sort((a, b) => g.lib.indexOf(a) - g.lib.indexOf(b)); return { title: `ライブラリーの上から${p.ids.length}枚`, ids: p.ids, zone: 'lib' }; }
+  if (p.kind === 'search') return { title: `ライブラリー ${g.lib.length}枚(名前順。閉じると切り直します)`, ids: g.lib.slice().sort((a, b) => pName(a).localeCompare(pName(b), 'ja')), zone: 'lib' };
+  if (p.kind === 'gy') return { title: `墓地 ${g.gy.length}枚(新しい順)`, ids: g.gy.slice().reverse(), zone: 'gy' };
+  return { title: `追放 ${g.ex.length}枚(新しい順)`, ids: g.ex.slice().reverse(), zone: 'ex' };
+}
+
+function renderPlay() {
+  const deck = state.decks.find(d => d.id === state.route.id);
+  const msg = !state.decksLoaded ? 'デッキを読み込み中…'
+    : !deck ? 'このデッキは見つかりません。デッキの一覧から「一人回し」を押し直してください。'
+    : !deckCount(deck) ? 'このデッキには、まだカードが入っていません。' : '';
+  $('playMsg').hidden = !msg; $('playMsg').textContent = msg;
+  $('playBody').hidden = !!msg;
+  if (msg) return;
+  if (play.deckId !== deck.id || !play.g) { play.undo = []; newGame(deck); }
+  const g = play.g;
+  document.title = `一人回し: ${deck.name}`;
+  if (play.sel && (!g.cards[play.sel] || (zoneOf(play.sel) === 'lib' && !play.panel))) play.sel = null;
+  $('pTitle').textContent = deck.name;
+  $('pTurn').textContent = String(g.turn);
+  $('pLife').textContent = String(g.life);
+  $('pNote').textContent = play.note;
+  $('pUndo').disabled = !play.undo.length;
+  const fill = (el, ids, zone, none) => el.replaceChildren(...(ids.length ? ids.map(id => pCardEl(id, zone)) : [h('span', { class: 'none', text: none })]));
+  fill($('pCmd'), g.cmd, 'cmd', g.cmd.length || Object.values(g.cards).some(c => c.cmd) ? '統率者は別の領域にいます。' : 'このデッキには統率者が決まっていません。');
+  $('pLibN').textContent = `${g.lib.length}枚`;
+  $('pDraw').disabled = !g.lib.length; $('pPeek').disabled = !g.lib.length; $('pSearch').disabled = !g.lib.length;
+  $('pGyN').textContent = `${g.gy.length}枚`; $('pExN').textContent = `${g.ex.length}枚`;
+  $('pGyOpen').disabled = !g.gy.length; $('pExOpen').disabled = !g.ex.length;
+  const lands = g.bf.filter(id => g.cards[id].t === 'L' && !g.cards[id].tok), others = g.bf.filter(id => !lands.includes(id));
+  $('pBfN').textContent = `${g.bf.length}枚`;
+  fill($('pBfMain'), others, 'bf', '土地以外のカードはここに並びます。');
+  fill($('pBfLand'), lands, 'bf', '土地はここに並びます。');
+  $('pHandN').textContent = `${g.hand.length}枚`;
+  fill($('pHand'), g.hand, 'hand', '手札はありません。');
+  const panel = panelCards();
+  $('pPanel').hidden = !panel;
+  if (panel) { $('pPanelTitle').textContent = panel.title; fill($('pPanelCards'), panel.ids, panel.zone, 'カードはありません。'); }
+  else $('pPanelCards').replaceChildren();
+  // 選んだカードの操作
+  const sel = play.sel;
+  $('pAct').hidden = !sel;
+  if (sel) {
+    $('pActName').replaceChildren(pName(sel), h('small', { text: PZONE[zoneOf(sel)] }));
+    $('pActBtns').replaceChildren(
+      ...actionsFor(sel).map(a => h('button', { class: 'btn small', type: 'button', text: a.label, onclick: a.run })),
+      h('button', { class: 'btn small', type: 'button', text: '拡大', onclick: () => { const c = g.cards[sel]; if (!c) return; $('zoomImg').hidden = !c.s; if (c.s) $('zoomImg').src = bigUrl(c.s); $('zoomImg').alt = c.j || c.n; $('zoomName').textContent = (c.j ? c.j + ' / ' : '') + c.n; $('zoomDlg').showModal(); } }),
+      h('button', { class: 'btn small quiet', type: 'button', text: '選択をやめる', onclick: () => { play.sel = null; renderPlay(); } }));
+    showPreview(sel);
+  } else if (!$('pPreview').firstChild) showPreview(null);
+}
+
+function bindPlay() {
+  const deckNow = () => state.decks.find(d => d.id === state.route.id);
+  $('pNext').addEventListener('click', () => act(g => { g.turn++; for (const id of g.bf) g.cards[id].tap = false; return drawCards(g, 1); },
+    k => `ターン${play.g.turn}。すべてアンタップして、` + (k ? `「${pName(play.g.hand[play.g.hand.length - 1])}」を引きました。` : 'ライブラリーが空のため引けませんでした。')));
+  $('pDraw').addEventListener('click', () => act(g => drawCards(g, 1), k => (k ? `「${pName(play.g.hand[play.g.hand.length - 1])}」を引きました。` : 'ライブラリーが空です。')));
+  $('pShuffle').addEventListener('click', () => { play.panel = null; act(g => { shuffle(g.lib); }, 'ライブラリーを切り直しました。'); });
+  $('pUntap').addEventListener('click', () => act(g => { for (const id of g.bf) g.cards[id].tap = false; }, 'すべてアンタップしました。'));
+  $('pLifeUp').addEventListener('click', () => act(g => { g.life++; }));
+  $('pLifeDown').addEventListener('click', () => act(g => { g.life--; }));
+  $('pMull').addEventListener('click', () => { play.sel = null; play.panel = null; act(g => { g.lib.push(...g.hand); g.hand = []; shuffle(g.lib); g.mull++; drawCards(g, 7); },
+    () => `マリガン${play.g.mull}回目。7枚を引き直しました。` + (play.g.mull > 1 ? `手札から${play.g.mull - 1}枚を選んで「ライブラリーの下へ」を押してください。` : '統率者戦では、1回目は枚数が減りません。')); });
+  $('pUndo').addEventListener('click', () => { if (!play.undo.length) return; play.g = JSON.parse(play.undo.pop()); play.sel = null; play.note = '1つ前の状態に戻しました。'; renderPlay(); });
+  $('pReset').addEventListener('click', () => { const d = deckNow(); if (!d) return; play.undo.push(JSON.stringify(play.g)); newGame(d); renderPlay(); });
+  $('pPeek').addEventListener('click', () => {
+    const n = Math.min(play.g.lib.length, Math.max(1, parseInt($('pPeekN').value, 10) || 1));
+    play.panel = { kind: 'peek', ids: play.g.lib.slice(0, n) }; play.sel = null; renderPlay();
+  });
+  $('pSearch').addEventListener('click', () => { play.panel = { kind: 'search' }; play.sel = null; renderPlay(); });
+  $('pGyOpen').addEventListener('click', () => { play.panel = { kind: 'gy' }; renderPlay(); });
+  $('pExOpen').addEventListener('click', () => { play.panel = { kind: 'ex' }; renderPlay(); });
+  $('pPanelClose').addEventListener('click', () => {
+    const searched = play.panel && play.panel.kind === 'search';
+    play.panel = null;
+    if (searched) act(g => { shuffle(g.lib); }, 'ライブラリーを探したので、切り直しました。'); else renderPlay();
+  });
+  $('pTokenForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('pTokenName').value.trim().slice(0, 30) || 'トークン';
+    act(g => { const id = 'k' + (++g.seq); g.cards[id] = { n: name, j: null, t: 'O', s: null, cmd: false, tap: false, ctr: 0, casts: 0, tok: true }; g.bf.push(id); }, `「${name}」トークンを出しました。`);
+  });
+  $('zoomClose').addEventListener('click', () => $('zoomDlg').close());
 }
 
 /* ---------- 同期(同期コード + 暗号化) ----------
    同期コードから「保存場所の名前」と「暗号の鍵」を別々に作る。
    サーバーに置くのは暗号化した文字列だけで、鍵は端末の外に出ない。 */
-const cloud = { db: null, code: null, key: null, cache: new Map(), seq: 0, token: 0 };
+const cloud = { db: null, code: null, key: null, cache: new Map(), seq: 0, token: 0, deckCol: null, deckCache: new Map(), deckSeq: 0, unsubDecks: null };
 const ALPHA = '23456789ABCDEFGHJKMNPQRSTVWXYZ';        // 見間違えやすい 0 1 I L O U は使わない
 const CODE_RE = /^[2-9A-HJKMNP-TV-Z]{20}$/;
 const utf8enc = new TextEncoder(), utf8dec = new TextDecoder();
@@ -1087,9 +2147,23 @@ async function seal(card) {
   const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: utf8enc.encode(card.id) }, cloud.key, utf8enc.encode(JSON.stringify(card)));
   return { iv: b64(iv), ct: b64(ct) };
 }
-async function unseal(id, v) {
+async function unsealRaw(id, v) {
   const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(v.iv), additionalData: utf8enc.encode(id) }, cloud.key, unb64(v.ct));
-  return clean(Object.assign(JSON.parse(utf8dec.decode(pt)), { id }));
+  return Object.assign(JSON.parse(utf8dec.decode(pt)), { id });
+}
+async function unseal(id, v) { return clean(await unsealRaw(id, v)); }
+async function openDecks(docs) {
+  const out = [], next = new Map();
+  for (const d of docs) {
+    const v = d.data() || {};
+    let hit = cloud.deckCache.get(d.id);
+    if (!hit || hit.ct !== v.ct) {
+      try { hit = { ct: v.ct, deck: cleanDeck(await unsealRaw(d.id, v)) }; } catch { continue; }   // 読めないデータは飛ばす
+    }
+    next.set(d.id, hit); out.push(hit.deck);
+  }
+  cloud.deckCache = next;
+  return out;
 }
 async function openAll(docs) {
   const out = [], next = new Map();
@@ -1108,16 +2182,36 @@ function loadScript(src) {
   return new Promise((ok, ng) => { const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = () => ng(new Error('load ' + src)); document.head.append(el); });
 }
 
-// 指定した同期コードのリストを開く。carry に入れたカードは、そのリストに加える。
-async function useCode(code, carry) {
+// 指定した同期コードのリストを開く。carry に入れたカードと carryDecks のデッキは、そのリストに加える。
+async function useCode(code, carry, carryDecks = []) {
   if (state.unsub) { state.unsub(); state.unsub = null; }
+  if (cloud.unsubDecks) { cloud.unsubDecks(); cloud.unsubDecks = null; }
   const { key, listId } = await deriveKeys(code);
   const token = ++cloud.token;
   cloud.code = code; cloud.key = key; cloud.cache = new Map();
   state.mode = 'cloud'; state.cards = []; state.loaded = false; state.autoRefreshed = false;
   state.col = cloud.db.collection('lists').doc(listId).collection('cards');
-  let carried = !carry.length;
+  cloud.deckCol = cloud.db.collection('lists').doc(listId).collection('decks');
+  cloud.deckCache = new Map();
+  state.decks = []; state.decksLoaded = false; state.deckErr = false;
+  let carried = !carry.length, decksCarried = !carryDecks.length;
   renderSync(); render();
+  cloud.unsubDecks = cloud.deckCol.onSnapshot(async snap => {
+    const seq = ++cloud.deckSeq;
+    const decks = await openDecks(snap.docs);
+    if (seq !== cloud.deckSeq || token !== cloud.token) return;
+    state.decks = decks; state.decksLoaded = true; state.deckErr = false;
+    render();
+    if (!decksCarried) {
+      decksCarried = true;
+      const have = new Set(decks.map(d => d.id));
+      for (const d of carryDecks) if (!have.has(d.id)) await saveDeck(d, true);
+      try { localStorage.removeItem(LS.decks); } catch { /* 消せなくても動作は続ける */ }
+    }
+  }, err => {
+    console.error(err);
+    if (token === cloud.token) { state.decksLoaded = true; state.deckErr = true; render(); }
+  });
   state.unsub = state.col.onSnapshot(async snap => {
     const seq = ++cloud.seq;
     const cards = await openAll(snap.docs);
@@ -1156,24 +2250,24 @@ async function startCloud() {
     alertBar('このブラウザは同期コードを保存できないため、同期を使えません。プライベートブラウズをやめて開き直してください。');
     return false;
   }
-  await useCode(code, localCards());
+  await useCode(code, localCards(), localDecks());
   return true;
 }
 
 function openSync() {
   $('myCode').value = showCode(cloud.code);
   $('joinCode').value = ''; $('joinErr').hidden = true;
-  const n = state.cards.length;
-  $('carryWrap').hidden = !n; $('carry').checked = true;
-  $('carryText').textContent = `いまこの端末に出ている${n}枚も、切り替え先のリストに加える`;
+  const n = state.cards.length, m = state.decks.length;
+  $('carryWrap').hidden = !(n || m); $('carry').checked = true;
+  $('carryText').textContent = `いまこの端末に出ている${n}枚${m ? 'とデッキ' + m + '個' : ''}も、切り替え先のリストに加える`;
   const prev = normCode(lsGet(LS.prev, ''));
   $('prevWrap').hidden = !(CODE_RE.test(prev) && prev !== cloud.code);
   $('prevCode').textContent = CODE_RE.test(prev) ? showCode(prev) : '';
   $('syncDlg').showModal();
 }
-async function switchCode(code, carry) {
+async function switchCode(code, carry, carryDecks = []) {
   lsSet(LS.prev, cloud.code); lsSet(LS.code, code);
-  await useCode(code, carry);
+  await useCode(code, carry, carryDecks);
   $('syncDlg').close();
   toast('リストを切り替えました。カードが出てこないときはコードを確かめてください。', null, 6000);
 }
@@ -1181,20 +2275,9 @@ async function switchCode(code, carry) {
 /* ---------- 起動 ---------- */
 function bind() {
   const name = $('fName');
-  name.addEventListener('input', onNameInput);
-  name.addEventListener('compositionstart', () => { sug.composing = true; });
-  name.addEventListener('compositionend', () => { sug.composing = false; onNameInput(); });   // 確定した文字で候補を出し直す
-  name.addEventListener('blur', () => setTimeout(closeSuggest, 120));
-  name.addEventListener('keydown', e => {
-    if ($('suggest').hidden || !sug.items.length) return;
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      sug.active = (sug.active + (e.key === 'ArrowDown' ? 1 : -1) + sug.items.length) % sug.items.length;
-      paintSuggest();
-      name.setAttribute('aria-activedescendant', 'sug' + sug.active);
-    } else if (e.key === 'Enter' && sug.active >= 0 && !e.isComposing) {
-      e.preventDefault(); chooseSuggest(sug.active);
-    } else if (e.key === 'Escape') closeSuggest();
+  const nameSug = makeSuggest(name, $('suggest'), {
+    onPick: it => { state.sel = it; nameError(''); },
+    onType: () => { state.sel = null; nameError(''); },
   });
 
   const formValues = () => ({
@@ -1207,7 +2290,7 @@ function bind() {
     e.preventDefault();
     const text = name.value.trim(); if (!text || adding) return;
     let sel = state.sel;
-    clearTimeout(sug.timer); sug.token++; closeSuggest(); nameError('');
+    nameSug.cancel(); nameError('');
     if (!sel) {
       adding = true; $('addBtn').disabled = true; $('addBtn').textContent = '確認中…';
       let r;
@@ -1217,7 +2300,7 @@ function bind() {
       if (r.status === 'ok') sel = r.card;
       else {
         name.focus();
-        if (r.status === 'choose') { sug.items = r.items; sug.active = -1; paintSuggest(); return nameError('候補が複数あります。下の候補から選んでください。'); }
+        if (r.status === 'choose') { nameSug.show(r.items); return nameError('候補が複数あります。下の候補から選んでください。'); }
         if (r.status === 'none') return nameError(`「${text}」は見つかりませんでした。カード名の一部を入れると候補が出ます。`);
         return nameError('カードを検索できませんでした。通信状態を確かめて、もう一度試してください。');
       }
@@ -1280,9 +2363,13 @@ function bind() {
     const fail = msg => { $('joinErr').textContent = msg; $('joinErr').hidden = false; };
     if (!CODE_RE.test(code)) return fail('同期コードは英数字20文字です。入力を確かめてください。');
     if (code === cloud.code) return fail('この端末は、すでにこのコードのリストを使っています。');
-    switchCode(code, !$('carryWrap').hidden && $('carry').checked ? state.cards.slice() : []);
+    const carry = !$('carryWrap').hidden && $('carry').checked;
+    switchCode(code, carry ? state.cards.slice() : [], carry ? state.decks.slice() : []);
   });
   $('prevGo').addEventListener('click', () => switchCode(normCode(lsGet(LS.prev, '')), []));
+  bindDecks();
+  bindPlay();
+  window.addEventListener('hashchange', applyRoute);
 }
 
 async function start() {
@@ -1293,9 +2380,11 @@ async function start() {
   if (!cloudOn) {
     state.mode = 'local'; state.loaded = true;
     state.cards = localCards();
+    state.decks = localDecks(); state.decksLoaded = true;
     renderSync(); render();
   }
-  $('app').hidden = false;
+  state.started = true;
+  applyRoute();
   await ratePromise;
   render();
   if (!cloudOn) refreshPrices(false);
