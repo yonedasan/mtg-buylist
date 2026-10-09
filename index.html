@@ -253,7 +253,7 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 .dsum .lbl { font-size: 12px; color: var(--muted); letter-spacing: .06em; margin-right: 6px; }
 .dsum .big { font-family: var(--font-data); font-size: 20px; font-weight: 500; }
 .dsum .c-color { display: inline-flex; vertical-align: middle; }
-.dadd { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px 12px; align-items: end; }
+.dadd { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 10px 12px; align-items: end; }
 .grp { padding: 8px 12px; font-size: 12px; color: var(--muted); letter-spacing: .08em; background: color-mix(in srgb, var(--ink) 4%, transparent); border-top: 1px solid var(--line); }
 #dRows { list-style: none; margin: 0; padding: 0; }
 #dRows .grp:first-child { border-top: 0; }
@@ -381,8 +381,9 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
   .c-shop { padding-top: 2px; }
   .total .yen { font-size: 32px; }
   .filters .count { margin-left: 0; flex-basis: 100%; }
-  .dadd { grid-template-columns: minmax(0, 1fr) auto; }
-  .dadd .f-name { grid-column: 1 / -1; }
+  .dadd { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .dadd .btn { width: 100%; min-height: 40px; }
+  .dadd .f-name, .dadd .field:last-child { grid-column: 1 / -1; }
   .drow { grid-template-columns: 34px minmax(0, 1fr) auto 30px; align-items: start; padding: 12px;
     grid-template-areas:
       "thumb name name del"
@@ -559,14 +560,16 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
         <form class="add" id="dAddForm" autocomplete="off">
           <div class="dadd">
             <div class="field f-name">
-              <label for="dCard">デッキに入れるカード(日本語でも英語でも)</label>
+              <label for="dCard">カード名(日本語でも英語でも)</label>
               <input class="in" id="dCard" type="text" placeholder="例: 稲妻 / Sol Ring" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="dSuggest">
               <ul class="suggest" id="dSuggest" role="listbox" hidden></ul>
               <p class="err" id="dErr" role="alert" hidden></p>
             </div>
             <div class="field"><button class="btn primary" id="dAddBtn" type="submit">デッキに追加</button></div>
+            <div class="field"><button class="btn" id="dCandBtn" type="button">候補リストに追加</button></div>
             <div class="field"><button class="btn" id="dImport" type="button">晴れる屋から取り込む</button></div>
           </div>
+          <div class="add-foot"><span>「候補リストに追加」は、デッキには入れずに候補として置きます。購入リストにも、このデッキ名で入ります。</span></div>
         </form>
         <section class="stack tight wishbox" id="dWishBox" hidden>
           <h3>候補リスト <span class="chip miss" id="dWishCount"></span></h3>
@@ -1438,7 +1441,7 @@ function cleanDeckCard(o) {
 }
 function cleanDeck(o) {
   o = o && typeof o === 'object' ? o : {};
-  const list = a => (Array.isArray(a) ? a.slice(0, 400).map(cleanDeckCard).filter(c => c.n) : []);
+  const list = a => (Array.isArray(a) ? a.slice(0, 250).map(cleanDeckCard).filter(c => c.n) : []);   // 統率者デッキは100枚。余裕を見て250種類まで
   return { id: text(o.id, 80), name: text(o.name, 60).trim() || '名前のないデッキ', commanders: list(o.commanders).slice(0, 2), cards: list(o.cards), createdAt: plainNum(o.createdAt) || 0, updatedAt: plainNum(o.updatedAt) || 0 };
 }
 function localDecks() { const a = lsGet(LS.decks, []); return Array.isArray(a) ? a.map(cleanDeck).filter(d => d.id) : []; }
@@ -1663,6 +1666,8 @@ async function putInDeck(card, deck, btn) {
   }
 }
 
+// 購入リストにある同じカードの行(同じカードでも、デッキごとに別の行を持てる)
+const buyRows = name => state.cards.filter(x => x.status !== 'notfound' && nameKey(x.name) === nameKey(name));
 // デッキのカードを購入リストへ。入れる予定のデッキには、このデッキの名前が入る。
 function addToBuy(c, deck) {
   const id = newId(), label = c.j || c.n;
@@ -1759,7 +1764,8 @@ function renderDeckDetail(id) {
   const row = (c, isCmd) => {
     const main = c.j || c.n, key = nameKey(c.n);
     const flagged = reuse.get(key), others = flagged ? flagged.decks.filter(d => d.id !== deck.id) : [];
-    const buy = state.cards.find(x => x.status !== 'notfound' && nameKey(x.name) === key);      // 購入リストに同じカードがあるか
+    const mine = buyRows(c.n).filter(x => { const d = (x.deck || '').trim(); return !d || d === deck.name; });
+    const buy = mine.find(x => !x.bought) || mine[0];      // 購入リストにある、このデッキの分(別のデッキ宛ての行は数えない)
     const change = fn => { const next = mergeInto(deck, []).deck; fn(next, (isCmd ? next.commanders : next.cards)); return saveDeck(next); };
     const idx = list => list.findIndex(x => nameKey(x.n) === nameKey(c.n));
     const remove = () => { change((d, list) => list.splice(idx(list), 1)); toast(`「${main}」をデッキから外しました`, { label: '元に戻す', run: () => saveDeck(deck) }); };
@@ -1858,33 +1864,57 @@ function bindDecks() {
     toast(`デッキ「${deck.name}」を削除しました`, { label: '元に戻す', run: () => saveDeck(deck, true) });
   });
 
-  $('dAddForm').addEventListener('submit', async e => {
-    e.preventDefault();
+  // 入力したカードを、デッキに入れる(deck)か、候補リストに置く(cand)
+  const addFromForm = async mode => {
     const deck = cur(), input = $('dCard'), typed = input.value.trim();
-    if (!deck || !typed || adding) return;
+    if (!deck || adding) return;
+    if (!typed) { input.focus(); return deckErrMsg('カード名を入れてください。'); }
     let sel = picked;
     dSug.cancel(); deckErrMsg('');
-    adding = true; $('dAddBtn').disabled = true; $('dAddBtn').textContent = '確認中…';
-    const done = () => { adding = false; $('dAddBtn').disabled = false; $('dAddBtn').textContent = 'デッキに追加'; };
+    const btn = mode === 'cand' ? $('dCandBtn') : $('dAddBtn'), word = btn.textContent;
+    adding = true; $('dAddBtn').disabled = true; $('dCandBtn').disabled = true; btn.textContent = '確認中…';
+    const done = () => { adding = false; $('dAddBtn').disabled = false; $('dCandBtn').disabled = false; btn.textContent = word; };
+    const finish = () => { picked = null; input.value = ''; input.focus(); };
     try {
       if (!sel) {
         const r = await findCard(typed);
         if (r.status === 'ok') sel = r.card;
-        else { done(); input.focus(); if (r.status === 'choose') { dSug.show(r.items); return deckErrMsg('候補が複数あります。下の候補から選んでください。'); } return deckErrMsg(`「${typed}」は見つかりませんでした。カード名の一部を入れると候補が出ます。`); }
+        else { done(); input.focus(); if (r.status === 'choose') { dSug.show(r.items); return deckErrMsg('当てはまるカードが複数あります。下に出たカードから選んでください。'); } return deckErrMsg(`「${typed}」は見つかりませんでした。カード名の一部を入れると候補が出ます。`); }
+      }
+      const now = cur() || deck, label = sel.nameJa || sel.name;
+      if (mode === 'cand') {
+        // 候補リスト = 購入リストで「入れる予定のデッキ」がこのデッキになっているカード
+        done();
+        if (inDeck(now, sel.name)) return deckErrMsg(`「${label}」は、すでにこのデッキに入っています。`);
+        const same = buyRows(sel.name), deckOf = x => (x.deck || '').trim();
+        if (same.some(x => deckOf(x) === now.name)) return deckErrMsg(`「${label}」は、すでに候補リストにあります。`);
+        const free = same.find(x => !deckOf(x) && !x.bought);       // デッキ欄が空の行があれば、行を増やさずにそれを使う
+        const other = same.find(x => deckOf(x));
+        if (free) {
+          await patch(free.id, { deck: now.name });
+          toast(`購入リストにあった「${label}」を、このデッキの候補にしました`, { label: '元に戻す', run: () => patch(free.id, { deck: '' }) });
+        } else {
+          const id = newId();
+          addCard({ id, text: label, sel: { name: sel.name, nameJa: sel.nameJa || null }, priority: 2, deck: now.name, memo: '' });
+          toast(other ? `「${label}」を候補リストに追加しました(購入リストには「${deckOf(other)}」の分とは別に入ります)` : `「${label}」を候補リストに追加しました(購入リストにも入ります)`, { label: '元に戻す', run: () => removeCard(id) });
+        }
+        return finish();
       }
       const dc = (await resolveDeckNames([sel.name])).get(nameKey(sel.name));
       if (!dc) { done(); return deckErrMsg(`「${typed}」の情報を取得できませんでした。`); }
       if (!dc.j && sel.nameJa) dc.j = sel.nameJa;
-      const now = cur() || deck, r = mergeInto(now, [dc]);
+      const r = mergeInto(cur() || deck, [dc]);
       done();
       if (!r.added) return deckErrMsg(`「${dc.j || dc.n}」は、すでにこのデッキに入っています。`);
       await saveDeck(r.deck);
-      picked = null; input.value = ''; input.focus();
+      finish();
     } catch (err) {
       console.error(err); done();
       deckErrMsg('カードを検索できませんでした。通信状態を確かめて、もう一度試してください。');
     }
-  });
+  };
+  $('dAddForm').addEventListener('submit', e => { e.preventDefault(); addFromForm('deck'); });
+  $('dCandBtn').addEventListener('click', () => addFromForm('cand'));
 
   $('impForm').addEventListener('submit', async e => {
     e.preventDefault();
