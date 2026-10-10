@@ -384,6 +384,28 @@ body.playing .wrap { max-width: 1560px; padding-top: 14px; }
 .pact .btn.quiet { color: var(--bg); border-color: color-mix(in srgb, var(--bg) 45%, transparent); }
 #zoomDlg { width: min(420px, calc(100vw - 32px)); }
 #zoomImg { width: 100%; border-radius: 12px; display: block; }
+/* カードの詳細: PCは左に絵・右に名前とコストと文。スマホは縦に並べる。絵の左右に、前後のカードへ移る薄いボタン */
+#zoomDlg.wide { width: min(800px, calc(100vw - 32px)); }
+#zoomDlg.wide .dlg { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 20px; align-items: start; }
+#zoomDlg.wide #zoomImg { aspect-ratio: 488 / 680; background: var(--bg); }   /* 絵が届く前から場所を取っておく(読み込みで窓の大きさが変わらないように) */
+.zpic { position: relative; }
+.zpic:has(#zoomImg[hidden]) { min-height: 72px; }
+.zinfo { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+#zoomDlg.wide .zinfo { min-height: 100%; }
+#zoomDlg.wide #zoomName { font-weight: 700; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; }
+#zoomDlg.wide .ztext { max-height: 24em; }
+.zmeta { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+.zmeta .zcost { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.zmeta .syms { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+.zmeta .mvl { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.zmeta .ztype { color: var(--muted); overflow-wrap: anywhere; }
+.zpos { margin-right: auto; align-self: center; color: var(--muted); font-size: 12.5px; font-family: var(--font-data); }
+.znav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 68px; padding: 0; border: 0; border-radius: 8px; background: color-mix(in srgb, #000 45%, transparent); color: #fff; font-size: 22px; font-weight: 700; line-height: 1; cursor: pointer; opacity: .55; }
+.znav:hover, .znav:focus-visible { opacity: 1; }
+.znav.prev { left: 6px; } .znav.next { right: 6px; }
+.znav:disabled { opacity: .12; cursor: default; }
+.d-thumb button { display: block; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 3px; }
+.mv { flex-basis: 100%; font-size: 11.5px; line-height: 1.4; color: var(--muted); white-space: nowrap; }
 
 /* 同期コードの画面 */
 dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); padding: 0; width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
@@ -482,6 +504,9 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
       "thumb marks marks marks"
       "thumb act act act"; }
   .drow .c-color { align-self: center; }
+  .drow .mv, .srow .mv { flex-basis: auto; margin-left: 6px; }
+  #zoomDlg.wide .dlg { grid-template-columns: minmax(0, 1fr); }
+  #zoomDlg.wide .zpic { width: 100%; max-width: 300px; margin-inline: auto; }
   .d-act { justify-content: flex-start; }
   .mini { padding: 5px 12px; font-size: 13px; }
   .d-qty { justify-self: end; }
@@ -868,10 +893,18 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
 
 <dialog id="zoomDlg" aria-labelledby="zoomName">
   <div class="dlg">
-    <img id="zoomImg" alt="">
-    <p id="zoomName"></p>
-    <p id="zoomText" class="ztext" hidden></p>
-    <div class="foot two"><button class="btn" id="zoomFlip" type="button" hidden>裏面を見る</button><button class="btn" id="zoomClose" type="button">閉じる</button></div>
+    <div class="zpic">
+      <img id="zoomImg" alt="">
+      <button class="znav prev" id="zoomPrev" type="button" aria-label="前のカード" title="前のカード(←キー)" hidden>←</button>
+      <button class="znav next" id="zoomNext" type="button" aria-label="次のカード" title="次のカード(→キー)" hidden>→</button>
+    </div>
+    <div class="zinfo">
+      <p id="zoomName"></p>
+      <div id="zoomMeta" class="zmeta" hidden></div>
+      <p id="zoomText" class="ztext" hidden></p>
+      <p id="zoomNote" class="note" role="status" hidden></p>
+      <div class="foot two"><span id="zoomPos" class="zpos" hidden></span><button class="btn" id="zoomFlip" type="button" hidden>裏面を見る</button><button class="btn" id="zoomClose" type="button">閉じる</button></div>
+    </div>
   </div>
 </dialog>
 
@@ -1958,6 +1991,17 @@ function applyRoute() {
 }
 const wubrg = colors => [...'WUBRG'].filter(x => colors.includes(x));
 const manaEls = (colors, known) => (colors.length ? wubrg(colors) : (known ? ['C'] : [])).map(x => h('img', { class: 'mana', src: MANA + x + '.svg', alt: COLOR_WORD[x] || x, width: 17, height: 17, loading: 'lazy' }));
+// マナ総量の表示(土地や、まだ分からないカードには出さない)
+const mvText = v => (Number.isInteger(v) ? String(v) : String(Math.round(v * 10) / 10));
+const mvEl = v => (typeof v === 'number' && v >= 0 ? h('span', { class: 'mv', text: 'マナ総量 ' + mvText(v) }) : null);
+// マナ・コスト「{2}{W}{B}」を記号の絵にする。知らない形は文字のまま出す
+function costEls(cost) {
+  return String(cost || '').split(/(\{[^{}]{1,8}\})/).map(part => {
+    const m = part.match(/^\{([A-Z0-9/]{1,8})\}$/);
+    if (m) return h('img', { class: 'mana', src: MANA + m[1].replace(/\//g, '') + '.svg', alt: part, title: part, width: 17, height: 17 });
+    return part.trim() ? h('span', { text: part.trim() }) : null;
+  });
+}
 const thumbEl = c => h('span', { class: 'thumb' }, c.s ? h('img', { src: thumbUrl(c.s), alt: '', loading: 'lazy' }) : null);
 function deckErrMsg(text, lookup) { showErr($('dErr'), text, lookup); }
 
@@ -2029,9 +2073,9 @@ function renderDeckDetail(id) {
     const idx = list => list.findIndex(x => nameKey(x.n) === nameKey(c.n));
     const remove = () => { change((d, list) => list.splice(idx(list), 1)); toast(`「${main}」をデッキから外しました`, { label: '元に戻す', run: () => saveDeck(deck) }); };
     return h('li', { class: 'drow', dataset: { name: c.n } },
-      h('div', { class: 'd-thumb' }, thumbEl(c)),
+      h('div', { class: 'd-thumb' }, h('button', { type: 'button', title: '詳しく見る', 'aria-label': main + ' を詳しく見る', onclick: () => openCards('deck', shown.map(x => ({ id: x.s, name: x.n, ja: x.j })), shown.indexOf(c)) }, thumbEl(c))),
       h('div', { class: 'd-name names' }, h('span', { class: 'n1', text: main }), c.j ? h('span', { class: 'n2', text: c.n }) : null),
-      h('div', { class: 'c-color', title: '固有色: ' + (c.c.length ? c.c.map(x => COLOR_WORD[x]).join('') : '無色') }, manaEls(c.c, true)),
+      h('div', { class: 'c-color', title: '固有色: ' + (c.c.length ? c.c.map(x => COLOR_WORD[x]).join('') : '無色') }, manaEls(c.c, true), mvEl(c.t === 'L' ? null : (cardInfo.get(key) || {}).v)),
       h('div', { class: 'd-qty' }, isFree(c) && !isCmd
         ? [h('button', { type: 'button', text: '−', 'aria-label': main + ' を1枚減らす', onclick: () => (c.q > 1 ? change((d, list) => { list[idx(list)].q = c.q - 1; }) : remove()) }),
            h('span', { class: 'num', text: '×' + c.q }),
@@ -2068,14 +2112,16 @@ function renderDeckDetail(id) {
 
   const show = c => !state.reuseOnly || reuse.has(nameKey(c.n));
   const byName = (a, b) => (a.j || a.n).localeCompare(b.j || b.n, 'ja');
-  const out = [];
+  const out = [], shown = [];                      // shown: 画面に出ている順のカード(詳細を開いたとき、←→でこの順に移る)
   const cmds = deck.commanders.filter(show);
   if (cmds.length || !state.reuseOnly) out.push(h('li', { class: 'grp', text: `統率者 ${deck.commanders.reduce((k, c) => k + c.q, 0)}枚` }));
   if (!deck.commanders.length && !state.reuseOnly) out.push(h('li', { class: 'empty', text: '統率者がまだ決まっていません。下のカードの「統率者にする」を押すと、ここに入ります。' }));
+  shown.push(...cmds);
   out.push(...cmds.map(c => row(c, true)));
   for (const t of TYPE_ORDER) {
     const all = deck.cards.filter(c => c.t === t), list = all.filter(show).sort(byName);
     if (!list.length) continue;
+    shown.push(...list);
     out.push(h('li', { class: 'grp', text: `${TYPE_WORD[t]} ${all.reduce((k, c) => k + c.q, 0)}枚` }), ...list.map(c => row(c, false)));
   }
   if (!deck.cards.length && !state.reuseOnly) out.push(h('li', { class: 'empty' }, h('strong', { text: 'カードがまだ入っていません' }), '上の欄から1枚ずつ足すか、「晴れる屋から取り込む」でデッキリストを貼り付けてください。'));
@@ -2177,6 +2223,7 @@ async function loadDeckInfo(deck) {
       }
       stats.step++; redraw();
     }
+    if (need.base.length && state.route.view === 'deck' && state.decks.some(d => d.id === state.route.id)) renderDeckDetail(state.route.id);   // カードの行にマナ総量を出す
     for (const [code, tag, batch] of jobs) {
       const res = await sfFetch('/cards/search?unique=cards&q=' + q('otag:' + tag + ' (' + batch.map(c => '!"' + exactTerm(frontName(c.n)) + '"').join(' or ') + ')'));
       // 名前の完全一致は、ほかのカードの裏面の名前にも当たるので、表面の名前で確かめる
@@ -2648,8 +2695,9 @@ function openZoom(id, back) {
   const c = play.g && play.g.cards[id];
   if (!c) return;
   const dfc = dfcOf(c), side = back == null ? showsBack(c) : back;
-  play.zoom = { id, back: side }; sv.zoom = null;
-  $('zoomText').hidden = true;
+  play.zoom = { id, back: side }; zoom.kind = null; zoom.list = [];
+  $('zoomDlg').classList.remove('wide');
+  for (const x of ['zoomText', 'zoomMeta', 'zoomNote', 'zoomPrev', 'zoomNext', 'zoomPos']) $(x).hidden = true;
   $('zoomImg').hidden = !c.s;
   if (c.s) $('zoomImg').src = faceUrl(c.s, side && !!dfc, true);
   $('zoomImg').alt = dfc ? sideName(c, side) : c.j || c.n;
@@ -2660,7 +2708,14 @@ function openZoom(id, back) {
 }
 function bindPlay() {
   const deckNow = () => state.decks.find(d => d.id === state.route.id);
-  $('zoomFlip').addEventListener('click', () => { if (sv.zoom) zoomHit(sv.zoom.hit, !sv.zoom.back); else if (play.zoom) openZoom(play.zoom.id, !play.zoom.back); });
+  $('zoomFlip').addEventListener('click', () => { if (zoom.kind) { zoom.back = !zoom.back; showZoom(); } else if (play.zoom) openZoom(play.zoom.id, !play.zoom.back); });
+  $('zoomPrev').addEventListener('click', () => stepZoom(-1));
+  $('zoomNext').addEventListener('click', () => stepZoom(1));
+  window.addEventListener('keydown', e => {              // 窓の中のどこにカーソルがあっても効くよう、画面全体で受ける
+    if (!zoom.kind || !$('zoomDlg').open || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+    e.preventDefault(); stepZoom(e.key === 'ArrowLeft' ? -1 : 1);
+  });
+  $('zoomDlg').addEventListener('close', afterZoom);
   $('pNext').addEventListener('click', () => act(g => { g.turn++; for (const id of g.bf) g.cards[id].tap = false; return drawCards(g, 1); },
     k => `ターン${play.g.turn}。すべてアンタップして、` + (k ? `「${pName(play.g.hand[play.g.hand.length - 1])}」を引きました。` : 'ライブラリーが空のため引けませんでした。')));
   $('pDraw').addEventListener('click', () => act(g => drawCards(g, 1), k => (k ? `「${pName(play.g.hand[play.g.hand.length - 1])}」を引きました。` : 'ライブラリーが空です。')));
@@ -2720,7 +2775,7 @@ function jaTypeLine(en) {
   }).join(' // ');
 }
 const S_ORDER = { edhrec: ['edhrec', 'auto'], name: ['name', 'auto'], rarity: ['rarity', 'desc'], cmc: ['cmc', 'asc'], released: ['released', 'desc'] };
-const sv = { q: '', order: 'edhrec', page: 0, total: 0, more: false, rows: [], busy: false, searched: false, zoom: null, pick: null };
+const sv = { q: '', order: 'edhrec', page: 0, total: 0, more: false, rows: [], busy: false, searched: false, pick: null };
 const checked = id => [...$(id).querySelectorAll('input:checked')].map(i => i.value);
 const fullDigits = t => t.replace(/[0-9]/g, d => String.fromCharCode(d.charCodeAt(0) + 0xFEE0));
 const halfDigits = t => t.replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0) - 0xFEE0));
@@ -2756,6 +2811,9 @@ function buildSearchQuery() {
   return terms.length ? ['(lang:ja or -in:ja)', 'game:paper'].concat(terms).join(' ') : null;
 }
 
+// パワー/タフネス、忠誠度、守備値
+const statWord = v => text(v, 6);
+const statOf = o => (!o || typeof o !== 'object' ? '' : o.power != null && o.toughness != null ? statWord(o.power) + '/' + statWord(o.toughness) : o.loyalty != null ? '忠誠度 ' + statWord(o.loyalty) : o.defense != null ? '守備値 ' + statWord(o.defense) : '');
 // 検索結果の1枚を、画面とデッキ・購入リストで使う形にする(受け取ったデータはそのまま信用しない)
 function searchHit(c) {
   const faces = Array.isArray(c.card_faces) ? c.card_faces : [];
@@ -2765,6 +2823,9 @@ function searchHit(c) {
     id: /^[0-9a-z-]{1,64}$/i.test(c.id || '') ? c.id : null, name: text(c.name, 200), ja, two,
     type: text(c.printed_type_line ? noRuby(c.printed_type_line) : faces.some(f => f && f.printed_type_line) ? faces.map(f => (f.printed_type_line ? noRuby(f.printed_type_line) : jaTypeLine(f.type_line))).join(' // ') : jaTypeLine(c.type_line), 200),
     text: noRuby(text(c.printed_text || faces.map(f => f.printed_text || f.oracle_text || '').filter(Boolean).join('\n//\n') || c.oracle_text, 1500)),
+    cost: text(typeof c.mana_cost === 'string' && c.mana_cost ? c.mana_cost : faces.map(f => (f && typeof f.mana_cost === 'string' ? f.mana_cost : '')).filter(Boolean).join(' // '), 120),
+    mv: Number.isFinite(plainNum(c.cmc)) && plainNum(c.cmc) >= 0 ? Math.min(plainNum(c.cmc), 1e7) : null, land: typeOf(c) === 'L',
+    pt: text([c].concat(faces).map(statOf).filter(Boolean).join(' // '), 60),
     rarity: text(c.rarity, 12), ci: Array.isArray(c.color_identity) ? c.color_identity.filter(x => typeof x === 'string' && x.length === 1 && 'WUBRG'.includes(x)) : [],
     dc: cleanDeckCard(toDeckCard(c, ja)),
   };
@@ -2845,17 +2906,73 @@ function renderPick() {
   }
   $('pickList').replaceChildren(...out);
 }
-// カードを大きく見る(絵と文)。両面カードは裏面も見られる
-function zoomHit(hit, back) {
-  sv.zoom = { hit, back: !!back && hit.two }; play.zoom = null;
-  $('zoomImg').hidden = false;
-  $('zoomImg').src = faceUrl(hit.id, sv.zoom.back, true);
-  $('zoomImg').alt = hit.ja || hit.name;
-  $('zoomName').textContent = (hit.ja ? hit.ja + ' / ' : '') + hit.name;
-  $('zoomText').textContent = hit.text; $('zoomText').hidden = !hit.text;
-  $('zoomFlip').hidden = !hit.two;
-  $('zoomFlip').textContent = sv.zoom.back ? '表面を見る' : '裏面を見る';
+/* カードの詳細を見る窓(絵・マナ・コスト・マナ総量・タイプ・文)。カード検索とデッキの一覧から開く。
+   ←→キーか、絵の左右のボタンで、一覧の前後のカードへ移る。両面カードは裏面も見られる。
+   検索結果は詳細を持っている。デッキのカードは、開いたときにScryfallから取って、この画面を開いているあいだ覚える。 */
+const zoom = { kind: null, list: [], at: 0, back: false };
+const cardDetail = new Map();                          // 画像のID → 詳細
+function openCards(kind, list, at) {
+  if (at < 0 || !list[at]) return;
+  zoom.kind = kind; zoom.list = list; zoom.at = at; zoom.back = false; play.zoom = null;
+  showZoom();
   if (!$('zoomDlg').open) $('zoomDlg').showModal();
+}
+function stepZoom(n) {
+  const to = zoom.at + n;
+  if (!zoom.kind || to < 0 || to >= zoom.list.length) return;
+  zoom.at = to; zoom.back = false;
+  showZoom();
+}
+async function loadDetail(it) {
+  if (!it.id || it.busy || it.none || cardDetail.has(it.id)) return;
+  it.busy = true; it.failed = false;
+  const wanted = () => $('zoomDlg').open && zoom.list[zoom.at] === it;
+  try {
+    const c = await sfFetch('/cards/' + q(it.id), undefined, lightQ, wanted);       // 見ていないカードの分は、順番が来たときに飛ばす
+    if (c && typeof c === 'object' && c.object === 'card') cardDetail.set(it.id, searchHit(c));
+    else if (wanted()) it.none = true;
+  } catch (e) { console.error(e); it.failed = true; }
+  it.busy = false;
+  if (wanted()) showZoom();
+}
+function showZoom() {
+  const it = zoom.list[zoom.at];
+  if (!it) return;
+  const d = typeof it.text === 'string' ? it : cardDetail.get(it.id) || null, name = it.name, ja = it.ja || (d && d.ja) || null;
+  const back = zoom.back && !!d && d.two;
+  $('zoomDlg').classList.add('wide');
+  $('zoomImg').hidden = !it.id;
+  if (it.id) $('zoomImg').src = faceUrl(it.id, back, true); else $('zoomImg').removeAttribute('src');
+  $('zoomImg').alt = ja || name;
+  $('zoomName').textContent = (ja ? ja + ' / ' : '') + name;
+  $('zoomMeta').hidden = !d;
+  if (d) {
+    const hasCost = !!d.cost, showMv = d.mv != null && !d.land;
+    $('zoomMeta').replaceChildren(...[
+      hasCost || showMv ? h('div', { class: 'zcost' }, hasCost ? h('span', { class: 'syms', role: 'img', 'aria-label': 'マナ・コスト ' + d.cost }, costEls(d.cost)) : null, showMv ? h('span', { class: 'mvl', text: 'マナ総量 ' + mvText(d.mv) }) : null) : null,
+      d.type || d.pt ? h('div', { class: 'ztype', text: [d.type, d.pt].filter(Boolean).join(' ・ ') }) : null].filter(Boolean));
+  }
+  $('zoomText').textContent = d ? d.text : ''; $('zoomText').hidden = !d || !d.text;
+  const note = d ? '' : !it.id ? 'このカードは、絵と詳細のデータがありません。' : it.failed ? '詳細を取得できませんでした。通信状態を確かめて、もう一度開いてください。' : it.none ? '詳細のデータが見つかりませんでした。' : '詳細を読み込んでいます…';
+  $('zoomNote').textContent = note; $('zoomNote').hidden = !note;
+  $('zoomFlip').hidden = !d || !d.two;
+  $('zoomFlip').textContent = back ? '表面を見る' : '裏面を見る';
+  const many = zoom.list.length > 1;
+  $('zoomPrev').hidden = !many; $('zoomNext').hidden = !many; $('zoomPos').hidden = !many;
+  $('zoomPrev').disabled = zoom.at <= 0; $('zoomNext').disabled = zoom.at >= zoom.list.length - 1;
+  $('zoomPos').textContent = many ? `${zoom.at + 1} / ${zoom.list.length}` : '';
+  // 押していたボタンが消えたとき(裏面のないカードへ移ったときなど)は、窓の中にカーソルを戻す
+  if ($('zoomDlg').open && (!$('zoomDlg').contains(document.activeElement) || document.activeElement.hidden)) $('zoomClose').focus();
+  if (!d) loadDetail(it);
+}
+// 窓を閉じたら、最後に見ていたカードの行に戻る
+function afterZoom() {
+  const it = zoom.kind && zoom.list[zoom.at], kind = zoom.kind;
+  zoom.kind = null; zoom.list = [];
+  if (!it) return;
+  const row = [...$(kind === 'deck' ? 'dRows' : 'sRows').children].find(li => li.dataset.name === it.name);
+  const btn = row && row.querySelector('.d-thumb button, .s-thumb button');
+  if (btn) { btn.focus({ preventScroll: true }); row.scrollIntoView({ block: 'nearest' }); }
 }
 
 function fillDeckSelect(el, list, first, value) {
@@ -2871,10 +2988,10 @@ function sRowEl(hit) {
   // デッキがあるときは、押してから入れ先を選ぶ。デッキがないときの購入リストへの追加は、そのまま入れる
   const canBuy = decks.length ? !rows.length || decks.some(d => !buyFor(rows, d)) : !rows.length;
   return h('li', { class: 'srow', dataset: { name: hit.name } },
-    h('div', { class: 's-thumb' }, h('button', { type: 'button', title: '大きく見る', 'aria-label': main + ' を大きく見る', onclick: () => zoomHit(hit, false) },
+    h('div', { class: 's-thumb' }, h('button', { type: 'button', title: '詳しく見る', 'aria-label': main + ' を詳しく見る', onclick: () => openCards('search', sv.rows, sv.rows.indexOf(hit)) },
       h('span', { class: 'thumb' }, h('img', { src: thumbUrl(hit.id), alt: '', loading: 'lazy' })))),
     h('div', { class: 's-name names' }, h('span', { class: 'n1', text: main }), hit.ja ? h('span', { class: 'n2', text: hit.name }) : null, h('span', { class: 's-type', text: hit.type })),
-    h('div', { class: 'c-color', title: '固有色: ' + (hit.ci.length ? wubrg(hit.ci).map(x => COLOR_WORD[x]).join('') : '無色') }, manaEls(hit.ci, true)),
+    h('div', { class: 'c-color', title: '固有色: ' + (hit.ci.length ? wubrg(hit.ci).map(x => COLOR_WORD[x]).join('') : '無色') }, manaEls(hit.ci, true), mvEl(hit.land ? null : hit.mv)),
     h('div', { class: 's-rar' }, RARITY_WORD[hit.rarity] ? h('span', { class: 'chip rar-' + hit.rarity, text: RARITY_WORD[hit.rarity] }) : null),
     h('div', { class: 's-text', text: hit.text }),
     h('div', { class: 's-act' },
