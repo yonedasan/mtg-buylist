@@ -299,16 +299,18 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 .chk:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
 .chk .mana { width: 16px; height: 16px; }
 .chk.plain { border-color: transparent; background: none; padding-left: 2px; }
+.chk.plain:has(select) { flex-wrap: wrap; white-space: normal; max-width: 100%; }   /* 長いデッキ名でも画面からはみ出さない */
+#sFit { min-width: 0; max-width: min(100%, 18em); text-overflow: ellipsis; }
 .tribes { max-height: 172px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; background: var(--bg); }
 .tribes .none { color: var(--muted); font-size: 13px; }
 .stools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 8px; }
 .stools .in { width: 15em; max-width: 100%; padding: 5px 8px; font-size: 14px; }
-.stools select, .sfoot select, #sDeck, #sFit { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); padding: 6px 8px; font: inherit; font-size: 14px; max-width: 100%; }
+.stools select, .sfoot select, #sFit { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); padding: 6px 8px; font: inherit; font-size: 14px; max-width: 100%; }
 .sfoot { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; border-top: 1px solid var(--line); padding-top: 12px; }
 .sfoot label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; }
 .sfoot .btn.primary { min-width: 7em; }
 #sRows { list-style: none; margin: 0; padding: 0; }
-.srow { display: grid; grid-template-columns: 46px minmax(150px, 1.3fr) 76px 84px minmax(0, 2fr) 128px; grid-template-areas: "thumb name color rar text act"; gap: 4px 12px; padding: 8px 12px; align-items: center; }
+.srow { display: grid; grid-template-columns: 46px minmax(150px, 1.3fr) 76px 84px minmax(0, 2fr) 176px; grid-template-areas: "thumb name color rar text act"; gap: 4px 12px; padding: 8px 12px; align-items: center; }
 .srow + .srow { border-top: 1px solid var(--line); }
 .srow > * { min-width: 0; }
 .s-thumb { grid-area: thumb; } .s-name { grid-area: name; } .srow .c-color { grid-area: color; } .s-rar { grid-area: rar; } .s-text { grid-area: text; } .s-act { grid-area: act; }
@@ -317,7 +319,16 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 .s-type { font-size: 12px; color: var(--muted); line-height: 1.4; overflow-wrap: anywhere; }
 .s-text { font-size: 12.5px; color: var(--muted); line-height: 1.5; white-space: pre-line; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .s-act { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; font-size: 12px; }
-.s-act .has { color: var(--muted); padding: 2px 4px; }
+.s-act .has { color: var(--muted); padding: 2px 4px; text-align: right; overflow-wrap: anywhere; }
+/* 入れ先を選ぶ窓: デッキを1行ずつのボタンで並べる。右に「入っています」などの状態 */
+.picks { list-style: none; margin: 0; padding: 2px; display: flex; flex-direction: column; gap: 6px; max-height: min(52vh, 420px); overflow-y: auto; }
+.picks button { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; text-align: left; padding: 10px 12px; min-height: 48px; border: 1px solid var(--line); border-radius: var(--radius); background: none; cursor: pointer; }
+.picks button:hover:not(:disabled) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.picks button:disabled { cursor: default; background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.picks button:disabled .pname { color: var(--muted); }
+.picks .pname { grid-column: 1; grid-row: 1; font-weight: 700; overflow-wrap: anywhere; }
+.picks .psub { grid-column: 1 / -1; grid-row: 2; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.picks .pstate { grid-column: 2; grid-row: 1; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 8px; align-items: center; font-size: 12.5px; color: var(--muted); }
 .chip.rar-common { color: var(--muted); }
 .chip.rar-uncommon { color: var(--lo); background: color-mix(in srgb, var(--lo) 14%, transparent); }
 .chip.rar-rare { color: var(--mid); background: color-mix(in srgb, var(--mid) 12%, transparent); }
@@ -742,7 +753,6 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
     <section class="stack tight" id="sResult" hidden>
       <div class="filters">
         <span id="sCount" role="status"></span>
-        <label id="sDeckWrap">入れ先のデッキ <select id="sDeck"></select></label>
       </div>
       <div class="list"><ul id="sRows"></ul></div>
       <div><button class="btn" id="sMore" type="button" hidden>続きを表示</button></div>
@@ -861,6 +871,15 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
     <p id="zoomName"></p>
     <p id="zoomText" class="ztext" hidden></p>
     <div class="foot two"><button class="btn" id="zoomFlip" type="button" hidden>裏面を見る</button><button class="btn" id="zoomClose" type="button">閉じる</button></div>
+  </div>
+</dialog>
+
+<dialog id="pickDlg" aria-labelledby="pickTitle">
+  <div class="dlg">
+    <h2 id="pickTitle"></h2>
+    <p class="note" id="pickNote"></p>
+    <ul class="picks" id="pickList"></ul>
+    <div class="foot"><button class="btn" id="pickClose" type="button">やめる</button></div>
   </div>
 </dialog>
 
@@ -2665,7 +2684,7 @@ function jaTypeLine(en) {
   }).join(' // ');
 }
 const S_ORDER = { edhrec: ['edhrec', 'auto'], name: ['name', 'auto'], rarity: ['rarity', 'desc'], cmc: ['cmc', 'asc'], released: ['released', 'desc'] };
-const sv = { q: '', order: 'edhrec', page: 0, total: 0, more: false, rows: [], busy: false, searched: false, deckId: '', zoom: null };
+const sv = { q: '', order: 'edhrec', page: 0, total: 0, more: false, rows: [], busy: false, searched: false, zoom: null, pick: null };
 const checked = id => [...$(id).querySelectorAll('input:checked')].map(i => i.value);
 const fullDigits = t => t.replace(/[0-9]/g, d => String.fromCharCode(d.charCodeAt(0) + 0xFEE0));
 const halfDigits = t => t.replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0) - 0xFEE0));
@@ -2737,18 +2756,16 @@ async function runSearch(more) {
   sv.busy = false; renderSearch();
 }
 
-const sTarget = () => state.decks.find(d => d.id === sv.deckId) || null;
-async function searchToDeck(hit) {
-  const deck = sTarget(), label = hit.ja || hit.name;
-  if (!deck) { $('sDeck').focus(); return toast('先に、上の「入れ先のデッキ」を選んでください'); }
+async function searchToDeck(hit, deck) {
+  const label = hit.ja || hit.name;
   const r = mergeInto(deck, [hit.dc]);
   if (!r.added) return toast(`「${label}」は、すでに「${deck.name}」に入っています`);
   await saveDeck(r.deck);
   toast(`「${label}」を「${deck.name}」に入れました`, { label: '元に戻す', run: () => saveDeck(deck) });
 }
-// 購入リストへ。入れ先のデッキを選んでいれば、そのデッキ名が入る(=そのデッキの候補リストに出る)
-async function searchToBuy(hit) {
-  const deck = sTarget(), dn = deck ? deck.name : '', label = hit.ja || hit.name;
+// 購入リストへ。デッキを選べば、そのデッキ名が入る(=そのデッキの候補リストに出る)。deck が null なら、デッキ欄は空
+async function searchToBuy(hit, deck) {
+  const dn = deck ? deck.name : '', label = hit.ja || hit.name;
   const free = dn ? buyRows(hit.name).find(x => !(x.deck || '').trim() && !x.bought) : null;
   if (free) {
     await patch(free.id, { deck: dn });
@@ -2757,6 +2774,40 @@ async function searchToBuy(hit) {
   const id = newId();
   addCard({ id, text: label, sel: { name: hit.name, nameJa: hit.ja || null }, priority: 2, deck: dn, memo: '' });
   toast(`「${label}」を購入リストに追加しました` + (dn ? `(デッキ: ${dn})` : ''), { label: '元に戻す', run: () => removeCard(id) });
+}
+/* 入れ先を選ぶ窓。「デッキに入れる」「購入リストに追加」を押したあとに、どのデッキにするかを選ぶ。
+   mode: 'deck' = デッキに入れる / 'buy' = 購入リストに追加(「デッキを決めない」も選べる) */
+const sortedDecks = () => state.decks.slice().sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+const buyFor = (rows, deck) => rows.some(x => (x.deck || '').trim() === deck.name);     // そのデッキ用の行が購入リストにあるか
+function openPick(hit, mode) {
+  sv.pick = { hit, mode };
+  renderPick();
+  if (!$('pickDlg').open) $('pickDlg').showModal();
+}
+function renderPick() {
+  const p = sv.pick, decks = sortedDecks();
+  if (!p || !decks.length) { if ($('pickDlg').open) $('pickDlg').close(); return; }
+  const { hit, mode } = p, label = hit.ja || hit.name, rows = buyRows(hit.name);
+  $('pickTitle').textContent = mode === 'deck' ? `「${label}」を入れるデッキ` : `「${label}」を購入リストに追加`;
+  $('pickNote').textContent = mode === 'deck' ? '入れるデッキを選んでください。' : 'どのデッキ用かを選んでください。デッキを選ぶと、そのデッキの候補リストにも出ます。';
+  const choose = deck => async () => {
+    $('pickDlg').close();
+    await (mode === 'deck' ? searchToDeck(hit, deck) : searchToBuy(hit, deck));
+    const row = [...$('sRows').children].find(li => li.dataset.name === hit.name), btn = row && row.querySelector(`[data-act="${mode}"]`);
+    if (btn) btn.focus();                               // 描き直しても、押したボタンに戻る
+  };
+  const opt = (name, sub, notes, off, deck) => h('li', null, h('button', { type: 'button', disabled: off, dataset: { deck: deck ? deck.id : '' }, onclick: choose(deck) },
+    h('span', { class: 'pname', text: name }), h('span', { class: 'psub', text: sub }), notes.some(Boolean) ? h('span', { class: 'pstate' }, notes) : null));
+  const out = [];
+  if (mode === 'buy') out.push(opt('デッキを決めない', '購入リストの「入れる予定のデッキ」は空のまま入ります', [rows.length ? h('span', { text: '購入リストにあります' }) : null], rows.length > 0, null));
+  for (const d of decks) {
+    const inD = inDeck(d, hit.name), ci = d.commanders.length ? deckColors(d) : null, offColor = !!ci && hit.ci.some(x => !ci.includes(x));
+    const sub = (d.commanders.length ? d.commanders.map(c => c.j || c.n).join(' / ') + ' ・ ' : '') + `${deckCount(d)} / 100枚`;
+    const warn = offColor ? h('span', { class: 'chip bad', title: '統率者の固有色にない色を含んでいます', text: '固有色が合わない' }) : null;
+    if (mode === 'deck') out.push(opt(d.name, sub, [inD ? h('span', { text: '入っています' }) : warn], inD, d));
+    else { const inB = buyFor(rows, d); out.push(opt(d.name, sub, [inB ? h('span', { text: '購入リストにあります' }) : null, inD ? h('span', { text: 'デッキに入っています' }) : (inB ? null : warn)], inB, d)); }
+  }
+  $('pickList').replaceChildren(...out);
 }
 // カードを大きく見る(絵と文)。両面カードは裏面も見られる
 function zoomHit(hit, back) {
@@ -2779,9 +2830,10 @@ function fillDeckSelect(el, list, first, value) {
   return want;
 }
 function sRowEl(hit) {
-  const deck = sTarget(), main = hit.ja || hit.name, front = hit.name.split(' // ')[0];
-  const rows = buyRows(hit.name), dn = deck ? deck.name : '';
-  const inBuy = deck ? rows.some(x => (x.deck || '').trim() === dn) : rows.length > 0;
+  const main = hit.ja || hit.name, front = hit.name.split(' // ')[0];
+  const decks = sortedDecks(), has = decks.filter(d => inDeck(d, hit.name)), rows = buyRows(hit.name);
+  // デッキがあるときは、押してから入れ先を選ぶ。デッキがないときの購入リストへの追加は、そのまま入れる
+  const canBuy = decks.length ? !rows.length || decks.some(d => !buyFor(rows, d)) : !rows.length;
   return h('li', { class: 'srow', dataset: { name: hit.name } },
     h('div', { class: 's-thumb' }, h('button', { type: 'button', title: '大きく見る', 'aria-label': main + ' を大きく見る', onclick: () => zoomHit(hit, false) },
       h('span', { class: 'thumb' }, h('img', { src: thumbUrl(hit.id), alt: '', loading: 'lazy' })))),
@@ -2790,24 +2842,23 @@ function sRowEl(hit) {
     h('div', { class: 's-rar' }, RARITY_WORD[hit.rarity] ? h('span', { class: 'chip rar-' + hit.rarity, text: RARITY_WORD[hit.rarity] }) : null),
     h('div', { class: 's-text', text: hit.text }),
     h('div', { class: 's-act' },
-      state.decks.length ? (deck && inDeck(deck, hit.name)
-        ? h('span', { class: 'has', text: 'デッキに入っています' })
-        : h('button', { class: 'mini', type: 'button', text: 'デッキに入れる', 'aria-label': main + ' をデッキに入れる', onclick: () => searchToDeck(hit) })) : null,
-      inBuy ? h('span', { class: 'has', text: '購入リストにあります' })
-        : h('button', { class: 'mini', type: 'button', text: '購入リストに追加', 'aria-label': main + ' を購入リストに追加', onclick: () => searchToBuy(hit) }),
+      has.length < decks.length ? h('button', { class: 'mini', type: 'button', text: 'デッキに入れる', dataset: { act: 'deck' }, 'aria-haspopup': 'dialog', 'aria-label': main + ' をデッキに入れる(入れ先を選ぶ)', onclick: () => openPick(hit, 'deck') }) : null,
+      has.length ? h('span', { class: 'has', text: '入っているデッキ: ' + has.map(d => d.name).join('、') }) : null,
+      canBuy ? h('button', { class: 'mini', type: 'button', text: '購入リストに追加', dataset: { act: 'buy' }, 'aria-haspopup': decks.length ? 'dialog' : null, 'aria-label': main + ' を購入リストに追加',
+        onclick: () => (decks.length ? openPick(hit, 'buy') : searchToBuy(hit, null)) }) : null,
+      rows.length ? h('span', { class: 'has', text: '購入リストにあります' }) : null,
       h('a', { class: 'shop', href: HARERUYA + q(front), target: '_blank', rel: 'noopener noreferrer', text: '晴れる屋で見る' })));
 }
 function renderSearch() {
   const withCmd = state.decks.filter(d => d.commanders.length).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
   fillDeckSelect($('sFit'), withCmd, '指定しない', $('sFit').value);
-  sv.deckId = fillDeckSelect($('sDeck'), state.decks.slice().sort((a, b) => a.name.localeCompare(b.name, 'ja')), '選ばない', sv.deckId);
-  $('sDeckWrap').hidden = !state.decks.length;
   $('sGo').disabled = sv.busy; $('sGo').textContent = sv.busy ? '検索中…' : '検索';
   $('sResult').hidden = !sv.searched && !sv.busy;
   $('sCount').textContent = sv.busy && !sv.rows.length ? '検索しています…' : sv.total ? `${sv.total.toLocaleString('ja-JP')}枚のうち${sv.rows.length}枚を表示` : '';
   $('sRows').replaceChildren(...(sv.rows.length ? sv.rows.map(sRowEl)
     : [h('li', { class: 'empty' }, sv.busy ? h('strong', { text: '検索しています…' }) : [h('strong', { text: '条件に合うカードがありません' }), '条件を減らすか、言葉を短くして試してください。日本語のテキストは、カードに書かれているとおりの言葉で探します。'])]));
   $('sMore').hidden = !sv.more; $('sMore').disabled = sv.busy; $('sMore').textContent = sv.busy ? '読み込み中…' : '続きを表示';
+  if ($('pickDlg').open) renderPick();                    // 窓を開いたままデッキやリストが変わったとき
 }
 
 function bindSearch() {
@@ -2836,7 +2887,9 @@ function bindSearch() {
   $('sForm').addEventListener('submit', e => { e.preventDefault(); runSearch(false); });
   $('sMore').addEventListener('click', () => runSearch(true));
   $('sOrder').addEventListener('change', () => { if (sv.searched && !sv.busy) runSearch(false); });
-  $('sDeck').addEventListener('change', e => { sv.deckId = e.target.value; renderSearch(); });
+  $('pickClose').addEventListener('click', () => $('pickDlg').close());
+  $('pickDlg').addEventListener('close', () => { sv.pick = null; });
+  window.addEventListener('hashchange', () => { if ($('pickDlg').open) $('pickDlg').close(); });
   $('sReset').addEventListener('click', () => {
     $('sForm').reset(); $('sMulti').checked = true; $('sTribeFind').value = '';
     filterTribes(); sErr('');
