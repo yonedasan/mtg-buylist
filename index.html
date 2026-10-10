@@ -394,6 +394,46 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
 .err a { white-space: nowrap; }
 .prev { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; overflow-wrap: anywhere; }
 
+/* デッキのデータ: 上段に「カードの種類」「マナカーブ」、下段に「色の比率」「カードの役割」。スマホは縦に1列。
+   棒はすべて同じ1色。色の名前はマナ記号と文字で示す(色だけに頼らない)。 */
+#dStats h3 { margin: 0; font-family: var(--font-display); font-size: 17px; line-height: 1.4; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.spanel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.spanel h4 { margin: 0; font-size: 14px; font-weight: 700; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.spanel h4 .sub { font-weight: 400; }
+.spanel .sub { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.6; overflow-wrap: anywhere; }
+.spanel .sub strong { color: var(--ink); font-weight: 700; }
+.spanel h5 { margin: 4px 0 0; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.hbars { display: grid; grid-template-columns: auto minmax(36px, 1fr) auto; gap: 7px 10px; align-items: center; }
+.hbars.iconed { grid-template-columns: 4.6em minmax(36px, 1fr) minmax(5.6em, auto); }
+.hbars .lab { display: flex; align-items: center; gap: 6px; font-size: 13.5px; white-space: nowrap; }
+.hbars .ico { width: 17px; height: 17px; flex: none; display: inline-flex; }
+.hbars .track { height: 12px; display: block; }
+.hbars .fill { display: block; height: 100%; min-width: 2px; background: var(--accent); border-radius: 0 4px 4px 0; }
+.hbars .val { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; white-space: nowrap; }
+.hbars .val small { color: var(--muted); font-size: 12px; }
+.snames { list-style: none; margin: -6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 3px 6px; font-size: 12.5px; line-height: 1.5; }
+.snames li { border: 1px solid var(--line); border-radius: 4px; padding: 1px 7px; overflow-wrap: anywhere; }
+.curve { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); height: 148px; border-bottom: 1px solid var(--line); }
+.curve button { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 100%; min-width: 0; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 4px 4px 0 0; }
+.curve .cval { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 12.5px; line-height: 1; }
+.curve .zero .cval { color: var(--muted); }
+.curve .col { display: block; width: min(24px, 62%); background: var(--accent); border-radius: 4px 4px 0 0; }
+.curve button:hover .col { filter: brightness(1.15); }
+.curve.picked button[aria-pressed="false"] .col { opacity: .35; }
+.curve-x { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); text-align: center; font-family: var(--font-data); font-size: 12.5px; color: var(--muted); }
+.roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.roles button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 12px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: none; cursor: pointer; text-align: left; min-width: 0; }
+.roles button:hover { border-color: var(--muted); }
+.roles button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.roles .rlab { font-size: 12.5px; color: var(--muted); }
+.roles .rnum { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 26px; line-height: 1.2; }
+.roles .rnum small { font-family: var(--font-body); font-size: 12.5px; color: var(--muted); margin-left: 2px; }
+@media (max-width: 860px) {
+  .stats { grid-template-columns: minmax(0, 1fr); }
+  .curve button, .roles button { min-height: 44px; }
+}
+
 @media (max-width: 860px) {
   .add-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .add-grid .f-name, .add-grid .f-memo { grid-column: 1 / -1; }
@@ -632,6 +672,10 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
           <button class="linkbtn" id="dDelete" type="button">このデッキを削除</button>
         </div>
         <div class="list"><ul id="dRows"></ul></div>
+        <section class="stack tight" id="dStats" hidden>
+          <h3>デッキのデータ</h3>
+          <div class="stats" id="dStatsBody"></div>
+        </section>
       </div>
     </section>
   </main>
@@ -874,7 +918,7 @@ const SF = 'https://api.scryfall.com';
 const RATE_URL = 'https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY';
 const HARERUYA = 'https://www.hareruyamtg.com/ja/products/search?product=';
 const DAY = 864e5;
-const LS = { cards: 'mtgbuy.cards.v1', decks: 'mtgbuy.decks.v1', rate: 'mtgbuy.rate.v1', ui: 'mtgbuy.ui.v1', code: 'mtgbuy.code.v1', prev: 'mtgbuy.prevcode.v1' };
+const LS = { cards: 'mtgbuy.cards.v1', decks: 'mtgbuy.decks.v1', rate: 'mtgbuy.rate.v1', ui: 'mtgbuy.ui.v1', code: 'mtgbuy.code.v1', prev: 'mtgbuy.prevcode.v1', info: 'mtgbuy.cardinfo.v1' };
 const PRICE_KEY = { nonfoil: 'usd', foil: 'usd_foil', etched: 'usd_etched' };
 const MANA = 'https://svgs.scryfall.io/card-symbols/';
 const COLOR_WORD = { W: '白', U: '青', B: '黒', R: '赤', G: '緑', C: '無色' };
@@ -1995,6 +2039,220 @@ function renderDeckDetail(id) {
   $('dRows').replaceChildren(...out);
   $('dReuseOnly').checked = state.reuseOnly;
   $('dCount').textContent = `${allCards(deck).length}種類`;
+  renderDeckStats(deck);
+}
+
+/* --- デッキのデータ(種類ごとの枚数・マナカーブ・色の比率・役割ごとの枚数) ---
+   マナ総量や色、役割は、デッキには保存していない。デッキを開いたときにScryfallに問い合わせて、この端末の中だけで覚える
+   (同じカードを2回調べないため。カードそのものの情報で、だれのデッキかは含まない)。
+   役割(除去・ドロー・マナ加速)は、Scryfallの利用者が付けている分類タグで見分けるので、目安として扱う。 */
+const ROLES = [['x', '除去', 'removal'], ['d', 'ドロー', 'draw'], ['m', 'マナ加速', 'ramp']];
+const INFO_DAYS = 30;                                  // 分類タグは後から付くことがあるので、30日たったら調べ直す
+const dayNow = () => Math.floor(Date.now() / 864e5);
+const stats = { busy: false, failed: null, step: 0, steps: 0, deckId: null, bucket: null, role: null };
+// 表面の名前(小文字) → { v: マナ総量(分からなかったカードは -1), k: 色, m: コストに含まれる色マナの記号, r: 役割(まだ調べていなければ null), d: 調べた日 }
+const cardInfo = new Map();
+function cleanInfo(o) {
+  if (!o || typeof o !== 'object') return null;
+  const v = plainNum(o.v), d = plainNum(o.d);
+  if (!Number.isFinite(v)) return null;
+  return {
+    v: v < 0 ? -1 : Math.min(v, 1e7), k: text(o.k, 5).replace(/[^WUBRG]/g, ''), m: text(o.m, 60).replace(/[^WUBRG]/g, ''),
+    r: typeof o.r === 'string' ? o.r.slice(0, 3).replace(/[^xdm]/g, '') : null, d: Number.isFinite(d) && d > 0 ? Math.floor(d) : 0,
+  };
+}
+function loadInfo() {
+  const saved = lsGet(LS.info, null);
+  if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return;
+  for (const [k, o] of Object.entries(saved).slice(0, 6000)) { const i = cleanInfo(o); if (i && k.length <= 200) cardInfo.set(k, i); }
+}
+function saveInfo() {
+  let list = [...cardInfo];
+  if (list.length > 4000) { list = list.sort((a, b) => b[1].d - a[1].d).slice(0, 3000); cardInfo.clear(); for (const [k, i] of list) cardInfo.set(k, i); }   // 増えすぎたら古いものから捨てる
+  lsSet(LS.info, Object.fromEntries(list));
+}
+function infoFromCard(card, day) {
+  const face = (card.card_faces || [])[0] || {};
+  const cols = Array.isArray(card.colors) ? card.colors : Array.isArray(face.colors) ? face.colors : [];
+  const cost = typeof card.mana_cost === 'string' ? card.mana_cost : typeof face.mana_cost === 'string' ? face.mana_cost : '';
+  let m = '';
+  for (const sym of cost.match(/\{[^}]*\}/g) || []) for (const x of 'WUBRG') if (sym.includes(x)) m += x;   // {W/U} のような混成マナは両方の色に数える
+  const v = plainNum(card.cmc);
+  return cleanInfo({ v: Number.isFinite(v) && v >= 0 ? v : 0, k: wubrg(cols.filter(x => typeof x === 'string')).join(''), m, r: null, d: day });
+}
+// このデッキで、まだ調べていないカード。base=マナ総量や色、roles=役割(土地は数えないので調べない)
+function infoNeeds(deck) {
+  const base = [], roles = [], seen = new Set(), day = dayNow();
+  for (const c of allCards(deck)) {
+    const k = nameKey(c.n);
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    const i = cardInfo.get(k), old = !i || day - i.d > INFO_DAYS;
+    if (!i || (i.v < 0 && old)) base.push(c);
+    if (c.t !== 'L' && (!i || i.r == null || old)) roles.push(c);
+  }
+  return { base, roles };
+}
+const failKey = deck => deck.id + ':' + deck.updatedAt;
+async function loadDeckInfo(deck) {
+  const need = infoNeeds(deck);
+  if (stats.busy || (!need.base.length && !need.roles.length) || stats.failed === failKey(deck)) return;
+  stats.busy = true; stats.failed = null;
+  const batches = []; let cur = [], len = 0;
+  for (const c of need.roles) {                        // 名前を「または」でつないで、24枚ずつまとめて調べる
+    const part = exactTerm(frontName(c.n)).length + 8;
+    if (cur.length >= 24 || len + part > 820) { batches.push(cur); cur = []; len = 0; }
+    cur.push(c); len += part;
+  }
+  if (cur.length) batches.push(cur);
+  stats.step = 0; stats.steps = Math.ceil(need.base.length / 75) + batches.length * ROLES.length;
+  const day = dayNow();
+  const redraw = () => { const d = state.route.view === 'deck' ? state.decks.find(x => x.id === state.route.id) : null; if (d) renderDeckStats(d); };
+  redraw();
+  try {
+    for (let i = 0; i < need.base.length; i += 75) {
+      const part = need.base.slice(i, i + 75);
+      const res = await sfFetch('/cards/collection', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ identifiers: part.map(c => ({ name: frontName(c.n) })) }) });
+      if (!res || !Array.isArray(res.data)) throw new Error('Scryfall: no data');
+      const got = new Map();
+      for (const c of res.data) if (c && typeof c === 'object' && typeof c.name === 'string') got.set(nameKey(c.name), c);
+      for (const c of part) {
+        const k = nameKey(c.n), hit = got.get(k), was = cardInfo.get(k);
+        const info = hit ? infoFromCard(hit, day) : { v: -1, k: '', m: '', r: null, d: day };
+        if (was && was.r != null) info.r = was.r;
+        cardInfo.set(k, info);
+      }
+      stats.step++; redraw();
+    }
+    for (const batch of batches) {
+      const found = new Map(batch.map(c => [nameKey(c.n), '']));
+      const names = '(' + batch.map(c => '!"' + exactTerm(frontName(c.n)) + '"').join(' or ') + ')';
+      for (const [code, , tag] of ROLES) {
+        const res = await sfFetch('/cards/search?unique=cards&q=' + q('otag:' + tag + ' ' + names));
+        // 名前の完全一致は、ほかのカードの裏面の名前にも当たるので、表面の名前で確かめる
+        for (const c of (res && Array.isArray(res.data) ? res.data : [])) { const k = c && typeof c.name === 'string' ? nameKey(c.name) : null; if (k && found.has(k)) found.set(k, found.get(k) + code); }
+        stats.step++; redraw();
+      }
+      for (const [k, r] of found) { const i = cardInfo.get(k); if (i) { i.r = r; i.d = day; } }
+    }
+  } catch (e) { console.error(e); stats.failed = failKey(deck); }
+  stats.busy = false;
+  saveInfo();
+  redraw();
+}
+// 合計がちょうど100になるように、端数の大きい順に1ずつ足す
+function percents(ns) {
+  const total = ns.reduce((a, b) => a + b, 0);
+  if (!total) return ns.map(() => 0);
+  const raw = ns.map(n => n / total * 100), out = raw.map(Math.floor);
+  let rest = 100 - out.reduce((a, b) => a + b, 0);
+  for (const i of raw.map((r, j) => [r - Math.floor(r), j]).sort((a, b) => b[0] - a[0] || a[1] - b[1]).map(x => x[1])) { if (rest-- <= 0) break; out[i]++; }
+  return out;
+}
+// 横棒。rows: { label, icon, n, val, sub, tip }。棒の長さは、いちばん多いものを端までとして比べる
+function hbars(rows) {
+  const max = Math.max(1, ...rows.map(r => r.n));
+  return h('div', { class: 'hbars' + (rows.some(r => r.icon !== undefined) ? ' iconed' : '') }, rows.map(r => {
+    const fill = h('span', { class: 'fill' });
+    fill.style.width = (r.n / max * 100).toFixed(1) + '%';
+    return [h('span', { class: 'lab' }, r.icon === undefined ? null : h('span', { class: 'ico' }, r.icon), r.label),
+      h('span', { class: 'track', title: r.tip, 'aria-hidden': 'true' }, r.n ? fill : null),
+      h('span', { class: 'val' }, r.val, r.sub ? h('small', { text: ' ' + r.sub }) : null)];
+  }));
+}
+function renderDeckStats(deck) {
+  const cards = allCards(deck), total = deckCount(deck);
+  $('dStats').hidden = !total;
+  if (!total) return;
+  if (stats.deckId !== deck.id) { stats.deckId = deck.id; stats.bucket = null; stats.role = null; }
+  const need = infoNeeds(deck), failed = !stats.busy && stats.failed === failKey(deck);
+  const sum = list => list.reduce((k, c) => k + c.q, 0);
+  const label = c => c.j || c.n;
+  const names = list => list.slice().sort((a, b) => label(a).localeCompare(label(b), 'ja')).map(c => label(c) + (c.q > 1 ? ` ×${c.q}` : ''));
+  // 選んだ棒や役割の中身: 見出しと、カード名の一覧(名前に「、」を含むカードがあるので、1枚ずつ区切って並べる)
+  const picks = (head, list, none) => [h('p', { class: 'sub' }, h('strong', { text: head }), list.length ? null : ' ' + none), list.length ? h('ul', { class: 'snames' }, names(list).map(t => h('li', { text: t }))) : null];
+  const refocus = id => { const el = $('dStatsBody').querySelector(`[data-pick="${id}"]`); if (el) el.focus(); };   // 描き直しても、押したボタンに居続ける
+  const panel = (title, sub, ...kids) => h('section', { class: 'spanel' }, h('h4', null, title, sub ? h('span', { class: 'sub', text: sub }) : null), kids);
+  const waiting = () => (failed
+    ? h('p', { class: 'sub' }, 'カードの情報を取得できませんでした。通信状態を確認してください。 ', h('button', { class: 'linkbtn', type: 'button', text: 'もう一度調べる', onclick: () => { stats.failed = null; loadDeckInfo(deck); } }))
+    : h('p', { class: 'sub', role: 'status', text: 'カードの情報を調べています…' + (stats.busy && stats.steps ? ` ${stats.step} / ${stats.steps}` : '') }));
+
+  // 1. カードの種類
+  const types = TYPE_ORDER.map(t => [t, sum(cards.filter(c => c.t === t))]).filter(x => x[1]);
+  const tp = percents(types.map(x => x[1]));
+  const pType = panel('カードの種類', `合計 ${total}枚(統率者を含む)`,
+    hbars(types.map(([t, n], i) => ({ label: TYPE_WORD[t], n, val: n + '枚', tip: `${TYPE_WORD[t]} ${n}枚(${tp[i]}%)` }))));
+
+  // 土地以外のカードと、その情報
+  const spells = cards.filter(c => c.t !== 'L');
+  const info = c => cardInfo.get(nameKey(c.n));
+  const known = spells.filter(c => { const i = info(c); return i && i.v >= 0; });
+  const unknown = sum(spells) - sum(known);
+  const lost = () => (unknown && !need.base.length ? h('p', { class: 'sub', text: `情報を取得できなかったカード ${unknown}枚は、数に入れていません。` }) : null);
+  const nothing = () => lost() || h('p', { class: 'sub', text: '土地以外のカードがありません。' });
+  let pCurve, pColor, pRole;
+
+  if (need.base.length) {
+    pCurve = panel('マナカーブ', '土地を除く', waiting());
+    pColor = panel('色の比率', '土地を除く', waiting());
+  } else if (!known.length) {
+    pCurve = panel('マナカーブ', '土地を除く', nothing());
+    pColor = panel('色の比率', '土地を除く', nothing());
+  } else {
+    // 2. マナカーブ(マナ総量ごとの枚数。7以上はまとめる)
+    const buckets = Array.from({ length: 8 }, () => []);
+    for (const c of known) buckets[Math.min(7, Math.floor(info(c).v))].push(c);
+    const counts = buckets.map(sum), cmax = Math.max(1, ...counts), nKnown = sum(known);
+    const avg = nKnown ? known.reduce((k, c) => k + info(c).v * c.q, 0) / nKnown : 0;
+    const bname = i => (i === 7 ? '7マナ以上' : i + 'マナ');
+    const chart = h('div', { class: 'curve' + (stats.bucket == null ? '' : ' picked'), role: 'group', 'aria-label': 'マナ総量ごとの枚数' }, counts.map((n, i) => {
+      const col = h('span', { class: 'col' });
+      col.style.height = Math.round(n / cmax * 112) + 'px';
+      return h('button', { type: 'button', class: n ? '' : 'zero', 'aria-pressed': String(stats.bucket === i), title: `${bname(i)} ${n}枚`, 'aria-label': `${bname(i)} ${n}枚`,
+        dataset: { pick: 'b' + i },
+        onclick: () => { stats.bucket = stats.bucket === i ? null : i; renderDeckStats(deck); refocus('b' + i); } }, h('span', { class: 'cval', text: String(n) }), col);
+    }));
+    const picked = stats.bucket == null ? null : buckets[stats.bucket];
+    pCurve = panel('マナカーブ', `土地を除く ${nKnown}枚 ・ 平均 ${avg.toFixed(2)}`,
+      chart,
+      h('div', { class: 'curve-x', 'aria-hidden': 'true' }, counts.map((n, i) => h('span', { text: i === 7 ? '7+' : String(i) }))),
+      picked ? picks(`${bname(stats.bucket)} ${sum(picked)}枚`, picked, '')
+             : h('p', { class: 'sub', text: '下の数字はマナ総量です。棒を押すと、そのマナ総量のカード名が出ます。' }),
+      lost());
+
+    // 3. 色の比率(カードの色ごとの枚数と、コストに含まれる色マナの記号の数)
+    const cats = [...'WUBRG', 'M', 'C'], word = x => (x === 'M' ? '多色' : COLOR_WORD[x]);
+    const icon = x => (x === 'M' ? null : h('img', { class: 'mana', src: MANA + x + '.svg', alt: '', width: 17, height: 17, loading: 'lazy' }));
+    const catOf = c => { const k = info(c).k; return k.length > 1 ? 'M' : k || 'C'; };
+    const byCat = cats.map(x => [x, sum(known.filter(c => catOf(c) === x))]).filter(x => x[1]);
+    const cp = percents(byCat.map(x => x[1]));
+    const pips = [...'WUBRG'].map(x => [x, cards.reduce((k, c) => { const i = info(c); return k + (i ? i.m.split(x).length - 1 : 0) * c.q; }, 0)]).filter(x => x[1]);
+    const pp = percents(pips.map(x => x[1]));
+    pColor = panel('色の比率', '土地を除く',
+      h('h5', { text: `カードの色(${nKnown}枚)` }),
+      hbars(byCat.map(([x, n], i) => ({ label: word(x), icon: icon(x), n, val: cp[i] + '%', sub: n + '枚', tip: `${word(x)} ${n}枚(${cp[i]}%)` }))),
+      pips.length ? [h('h5', { text: `コストの色マナ記号(${pips.reduce((k, x) => k + x[1], 0)}個)` }),
+        hbars(pips.map(([x, n], i) => ({ label: word(x), icon: icon(x), n, val: pp[i] + '%', sub: n + '個', tip: `${word(x)}マナの記号 ${n}個(${pp[i]}%)` })))] : null,
+      h('p', { class: 'sub', text: '2色以上のカードは「多色」にまとめています。色マナ記号は、土地を選ぶときの目安になります。' }));
+  }
+
+  // 4. カードの役割(Scryfallの分類タグによる目安)
+  if (need.roles.length) {
+    pRole = panel('カードの役割', '目安', waiting());
+  } else {
+    const lists = ROLES.map(([code]) => spells.filter(c => { const i = info(c); return i && typeof i.r === 'string' && i.r.includes(code); }));
+    const at = ROLES.findIndex(r => r[0] === stats.role);
+    pRole = panel('カードの役割', '目安',
+      h('div', { class: 'roles' }, ROLES.map(([code, word], i) => h('button', { type: 'button', 'aria-pressed': String(stats.role === code), 'aria-label': `${word} ${sum(lists[i])}枚`,
+        dataset: { pick: 'r' + code },
+        onclick: () => { stats.role = stats.role === code ? null : code; renderDeckStats(deck); refocus('r' + code); } },
+        h('span', { class: 'rlab', text: word }), h('span', { class: 'rnum' }, String(sum(lists[i])), h('small', { text: '枚' }))))),
+      at >= 0 ? picks(`${ROLES[at][1]} ${sum(lists[at])}枚`, lists[at], '当てはまるカードはありません。')
+              : h('p', { class: 'sub', text: '数字を押すと、数えたカードの名前が出ます。' }),
+      h('p', { class: 'sub', text: 'Scryfallの利用者が付けた分類(removal / draw / ramp)で数えているので、目安としてご覧ください。1枚が2つ以上に数えられることがあります。「除去」には全体除去、「マナ加速」にはマナを出すアーティファクトやクリーチャーも含みます。土地は数えていません。' }));
+  }
+  $('dStatsBody').replaceChildren(pType, pCurve, pColor, pRole);
+  if (!failed) loadDeckInfo(deck);
 }
 
 /* --- デッキ画面の操作 --- */
@@ -2843,6 +3101,7 @@ function bind() {
 
 async function start() {
   bind();
+  loadInfo();
   renderSync();
   const ratePromise = loadRate();
   const cloudOn = FIREBASE_CONFIG ? await startCloud() : false;
