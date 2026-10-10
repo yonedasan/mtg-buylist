@@ -433,7 +433,7 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
 .curve button:hover .col { filter: brightness(1.15); }
 .curve.picked button[aria-pressed="false"] .col { opacity: .35; }
 .curve-x { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); text-align: center; font-family: var(--font-data); font-size: 12.5px; color: var(--muted); }
-.roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.roles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .roles button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 12px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: none; cursor: pointer; text-align: left; min-width: 0; }
 .roles button:hover { border-color: var(--muted); }
 .roles button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
@@ -442,6 +442,7 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
 .roles .rnum small { font-family: var(--font-body); font-size: 12.5px; color: var(--muted); margin-left: 2px; }
 @media (max-width: 860px) {
   .stats { grid-template-columns: minmax(0, 1fr); }
+  .roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .curve button, .roles button { min-height: 44px; }
 }
 
@@ -1252,13 +1253,13 @@ async function resolveCard(card) {
 }
 function patchIfExists(id, changes) { if (state.cards.some(c => c.id === id)) return patch(id, changes); }
 
-async function addCard({ id, text, sel, priority, deck, memo }) {
+async function addCard({ id, text, sel, priority, deck, memo, bought }) {
   const card = {
     id: id || newId(),
     name: sel ? sel.name : text,
     nameJa: sel ? sel.nameJa : (isJa(text) ? text : null),
     query: text, resolved: !!sel,
-    priority, deck: deck || '', memo: memo || '', bought: false,
+    priority, deck: deck || '', memo: memo || '', bought: !!bought,
     usd: null, finish: 'nonfoil', set: '', sid: null, uri: null, img: null, colors: [],
     status: 'pending', priceAt: null, createdAt: Date.now(),
   };
@@ -1906,6 +1907,29 @@ function addToBuy(c, deck) {
   toast(`「${label}」を購入リストに追加しました(デッキ: ${deck.name})`, { label: '元に戻す', run: () => removeCard(id) });
 }
 
+/* デッキに入っているカードを、候補リストへ移す。デッキから外し、購入リストにこのデッキ宛ての行を用意する。
+   - すでにこのデッキ宛ての行があれば、そのまま使う。
+   - デッキ欄が空の行があれば、このデッキ宛てにする(デッキの行に「未購入」「購入済み」と出していたのと同じ行)。
+   - どちらもなければ「購入済み」で作る。デッキに入っていて購入リストにないカードは、持っているものとして扱ってきたので、
+     買う予定の合計を増やさない。 */
+async function moveToCand(c, deck) {
+  const label = c.j || c.n, before = state.decks.find(d => d.id === deck.id) || deck, key = nameKey(c.n);
+  if (!before.cards.some(x => nameKey(x.n) === key)) return;
+  const next = mergeInto(before, []).deck;
+  next.cards = next.cards.filter(x => nameKey(x.n) !== key);
+  const same = buyRows(c.n), deckOf = x => (x.deck || '').trim();
+  const free = same.some(x => deckOf(x) === before.name) ? null : (same.find(x => !deckOf(x) && !x.bought) || same.find(x => !deckOf(x)));
+  let undoRow = () => {};
+  if (free) { await patch(free.id, { deck: before.name }); undoRow = () => patch(free.id, { deck: '' }); }
+  else if (!same.some(x => deckOf(x) === before.name)) {
+    const id = newId();
+    addCard({ id, text: label, sel: { name: c.n, nameJa: c.j }, priority: 2, deck: before.name, memo: '', bought: true });
+    undoRow = () => removeCard(id);
+  }
+  await saveDeck(next);
+  toast(`「${label}」をデッキから外して、候補リストに移しました`, { label: '元に戻す', run: async () => { await saveDeck(before); await undoRow(); } });
+}
+
 /* --- 画面 --- */
 function readRoute() {
   let v = location.hash.replace(/^#/, '');
@@ -2023,6 +2047,7 @@ function renderDeckDetail(id) {
         c.f.includes('b') ? null : h('button', { class: 'mini', type: 'button', 'aria-pressed': String(!!flagged), text: flagged ? '使いまわし ✓' : '使いまわしにする',
           title: flagged ? '使いまわしの印を外す' : 'ほかのデッキと使いまわすカードとして印を付ける', 'aria-label': main + (flagged ? ' の使いまわしの印を外す' : ' に使いまわしの印を付ける'), onclick: () => setReuse(c.n, !flagged) }),
         buy || c.f.includes('b') ? null : h('button', { class: 'mini', type: 'button', text: '購入リストに追加', 'aria-label': main + ' を購入リストに追加', onclick: () => addToBuy(c, deck) }),
+        isCmd || c.f.includes('b') ? null : h('button', { class: 'mini', type: 'button', text: '候補に移す', dataset: { act: 'cand' }, title: 'デッキから外して、候補リストに置く', 'aria-label': main + ' をデッキから外して候補リストに移す', onclick: () => moveToCand(c, deck) }),
         isCmd
         ? h('button', { class: 'linkbtn', type: 'button', text: '統率者から外す', onclick: () => change(d => { d.commanders.splice(d.commanders.findIndex(x => nameKey(x.n) === nameKey(c.n)), 1); d.cards.push(Object.assign({}, c)); }) })
         : (!deck.commanders.length || (deck.commanders.length < 2 && 'CPE'.includes(c.t)) ? h('button', { class: 'linkbtn', type: 'button', text: '統率者にする', onclick: () => change(d => { d.cards.splice(d.cards.findIndex(x => nameKey(x.n) === nameKey(c.n)), 1); d.commanders.push(Object.assign({}, c, { q: 1 })); }) }) : null)),
@@ -2065,19 +2090,23 @@ function renderDeckDetail(id) {
    マナ総量や色、役割は、デッキには保存していない。デッキを開いたときにScryfallに問い合わせて、この端末の中だけで覚える
    (同じカードを2回調べないため。カードそのものの情報で、だれのデッキかは含まない)。
    役割(除去・ドロー・マナ加速)は、Scryfallの利用者が付けている分類タグで見分けるので、目安として扱う。 */
-const ROLES = [['x', '除去', 'removal'], ['d', 'ドロー', 'draw'], ['m', 'マナ加速', 'ramp']];
+const ROLES = [['x', '除去', 'removal'], ['c', '打ち消し', 'counterspell'], ['d', 'ドロー', 'draw'], ['m', 'マナ加速', 'ramp']];
+const ROLE_CODES = ROLES.map(r => r[0]).join('');
 const INFO_DAYS = 30;                                  // 分類タグは後から付くことがあるので、30日たったら調べ直す
 const dayNow = () => Math.floor(Date.now() / 864e5);
 const stats = { busy: false, failed: null, step: 0, steps: 0, deckId: null, bucket: null, role: null };
-// 表面の名前(小文字) → { v: マナ総量(分からなかったカードは -1), k: 色, m: コストに含まれる色マナの記号, r: 役割(まだ調べていなければ null), d: 調べた日 }
+// 表面の名前(小文字) → { v: マナ総量(分からなかったカードは -1), k: 色, m: コストに含まれる色マナの記号, r: 当てはまる役割, g: 調べ終わった役割, d: 調べた日 }
+// 役割は種類ごとに調べ、調べ終わったものを g に残す(あとから役割の種類を増やしたとき、足りない分だけ調べれば済むように)
 const cardInfo = new Map();
+const roleCodes = v => [...ROLE_CODES].filter(x => typeof v === 'string' && v.includes(x)).join('');
 function cleanInfo(o) {
   if (!o || typeof o !== 'object') return null;
   const v = plainNum(o.v), d = plainNum(o.d);
   if (!Number.isFinite(v)) return null;
   return {
     v: v < 0 ? -1 : Math.min(v, 1e7), k: text(o.k, 5).replace(/[^WUBRG]/g, ''), m: text(o.m, 60).replace(/[^WUBRG]/g, ''),
-    r: typeof o.r === 'string' ? o.r.slice(0, 3).replace(/[^xdm]/g, '') : null, d: Number.isFinite(d) && d > 0 ? Math.floor(d) : 0,
+    r: roleCodes(o.r), d: Number.isFinite(d) && d > 0 ? Math.floor(d) : 0,
+    g: typeof o.g === 'string' ? roleCodes(o.g) : typeof o.r === 'string' ? 'xdm' : '',   // g のない古い記録は、除去・ドロー・マナ加速だけ調べてある
   };
 }
 function loadInfo() {
@@ -2097,35 +2126,40 @@ function infoFromCard(card, day) {
   let m = '';
   for (const sym of cost.match(/\{[^}]*\}/g) || []) for (const x of 'WUBRG') if (sym.includes(x)) m += x;   // {W/U} のような混成マナは両方の色に数える
   const v = plainNum(card.cmc);
-  return cleanInfo({ v: Number.isFinite(v) && v >= 0 ? v : 0, k: wubrg(cols.filter(x => typeof x === 'string')).join(''), m, r: null, d: day });
+  return cleanInfo({ v: Number.isFinite(v) && v >= 0 ? v : 0, k: wubrg(cols.filter(x => typeof x === 'string')).join(''), m, r: '', g: '', d: day });
 }
-// このデッキで、まだ調べていないカード。base=マナ総量や色、roles=役割(土地は数えないので調べない)
+// このデッキで、まだ調べていないカード。base=マナ総量や色、roles=役割ごとの、まだ調べていないカード(土地は数えないので調べない)
 function infoNeeds(deck) {
-  const base = [], roles = [], seen = new Set(), day = dayNow();
+  const base = [], roles = ROLES.map(() => []), seen = new Set(), day = dayNow();
   for (const c of allCards(deck)) {
     const k = nameKey(c.n);
     if (!k || seen.has(k)) continue;
     seen.add(k);
     const i = cardInfo.get(k), old = !i || day - i.d > INFO_DAYS;
     if (!i || (i.v < 0 && old)) base.push(c);
-    if (c.t !== 'L' && (!i || i.r == null || old)) roles.push(c);
+    if (c.t !== 'L') ROLES.forEach(([code], n) => { if (old || !i.g.includes(code)) roles[n].push(c); });
   }
-  return { base, roles };
+  return { base, roles, pending: roles.some(list => list.length > 0) };
 }
 const failKey = deck => deck.id + ':' + deck.updatedAt;
 async function loadDeckInfo(deck) {
   const need = infoNeeds(deck);
-  if (stats.busy || (!need.base.length && !need.roles.length) || stats.failed === failKey(deck)) return;
+  if (stats.busy || (!need.base.length && !need.pending) || stats.failed === failKey(deck)) return;
   stats.busy = true; stats.failed = null;
-  const batches = []; let cur = [], len = 0;
-  for (const c of need.roles) {                        // 名前を「または」でつないで、24枚ずつまとめて調べる
-    const part = exactTerm(frontName(c.n)).length + 8;
-    if (cur.length >= 24 || len + part > 820) { batches.push(cur); cur = []; len = 0; }
-    cur.push(c); len += part;
-  }
-  if (cur.length) batches.push(cur);
-  stats.step = 0; stats.steps = Math.ceil(need.base.length / 75) + batches.length * ROLES.length;
   const day = dayNow();
+  // 古くなった記録は、役割をすべて調べ直す(途中で失敗しても、調べ直した分だけが新しくなる)
+  for (const c of allCards(deck)) { const i = cardInfo.get(nameKey(c.n)); if (i && day - i.d > INFO_DAYS) i.g = ''; }
+  const jobs = [];                                     // 役割ごとに、名前を「または」でつないで24枚ずつまとめて調べる
+  ROLES.forEach(([code, , tag], n) => {
+    let cur = [], len = 0;
+    for (const c of need.roles[n]) {
+      const part = exactTerm(frontName(c.n)).length + 8;
+      if (cur.length >= 24 || len + part > 820) { jobs.push([code, tag, cur]); cur = []; len = 0; }
+      cur.push(c); len += part;
+    }
+    if (cur.length) jobs.push([code, tag, cur]);
+  });
+  stats.step = 0; stats.steps = Math.ceil(need.base.length / 75) + jobs.length;
   const redraw = () => { const d = state.route.view === 'deck' ? state.decks.find(x => x.id === state.route.id) : null; if (d) renderDeckStats(d); };
   redraw();
   try {
@@ -2137,22 +2171,24 @@ async function loadDeckInfo(deck) {
       for (const c of res.data) if (c && typeof c === 'object' && typeof c.name === 'string') got.set(nameKey(c.name), c);
       for (const c of part) {
         const k = nameKey(c.n), hit = got.get(k), was = cardInfo.get(k);
-        const info = hit ? infoFromCard(hit, day) : { v: -1, k: '', m: '', r: null, d: day };
-        if (was && was.r != null) info.r = was.r;
+        const info = hit ? infoFromCard(hit, day) : { v: -1, k: '', m: '', r: '', g: '', d: day };
+        if (was) { info.r = was.r; info.g = was.g; }
         cardInfo.set(k, info);
       }
       stats.step++; redraw();
     }
-    for (const batch of batches) {
-      const found = new Map(batch.map(c => [nameKey(c.n), '']));
-      const names = '(' + batch.map(c => '!"' + exactTerm(frontName(c.n)) + '"').join(' or ') + ')';
-      for (const [code, , tag] of ROLES) {
-        const res = await sfFetch('/cards/search?unique=cards&q=' + q('otag:' + tag + ' ' + names));
-        // 名前の完全一致は、ほかのカードの裏面の名前にも当たるので、表面の名前で確かめる
-        for (const c of (res && Array.isArray(res.data) ? res.data : [])) { const k = c && typeof c.name === 'string' ? nameKey(c.name) : null; if (k && found.has(k)) found.set(k, found.get(k) + code); }
-        stats.step++; redraw();
+    for (const [code, tag, batch] of jobs) {
+      const res = await sfFetch('/cards/search?unique=cards&q=' + q('otag:' + tag + ' (' + batch.map(c => '!"' + exactTerm(frontName(c.n)) + '"').join(' or ') + ')'));
+      // 名前の完全一致は、ほかのカードの裏面の名前にも当たるので、表面の名前で確かめる
+      const hit = new Set((res && Array.isArray(res.data) ? res.data : []).map(c => (c && typeof c.name === 'string' ? nameKey(c.name) : '')));
+      for (const c of batch) {
+        const k = nameKey(c.n), i = cardInfo.get(k);
+        if (!i) continue;
+        i.r = roleCodes(i.r.replace(code, '') + (hit.has(k) ? code : ''));
+        i.g = roleCodes(i.g + code);
+        i.d = day;
       }
-      for (const [k, r] of found) { const i = cardInfo.get(k); if (i) { i.r = r; i.d = day; } }
+      stats.step++; redraw();
     }
   } catch (e) { console.error(e); stats.failed = failKey(deck); }
   stats.busy = false;
@@ -2256,10 +2292,10 @@ function renderDeckStats(deck) {
   }
 
   // 4. カードの役割(Scryfallの分類タグによる目安)
-  if (need.roles.length) {
+  if (need.pending) {
     pRole = panel('カードの役割', '目安', waiting());
   } else {
-    const lists = ROLES.map(([code]) => spells.filter(c => { const i = info(c); return i && typeof i.r === 'string' && i.r.includes(code); }));
+    const lists = ROLES.map(([code]) => spells.filter(c => { const i = info(c); return !!i && i.r.includes(code); }));
     const at = ROLES.findIndex(r => r[0] === stats.role);
     pRole = panel('カードの役割', '目安',
       h('div', { class: 'roles' }, ROLES.map(([code, word], i) => h('button', { type: 'button', 'aria-pressed': String(stats.role === code), 'aria-label': `${word} ${sum(lists[i])}枚`,
@@ -2268,7 +2304,7 @@ function renderDeckStats(deck) {
         h('span', { class: 'rlab', text: word }), h('span', { class: 'rnum' }, String(sum(lists[i])), h('small', { text: '枚' }))))),
       at >= 0 ? picks(`${ROLES[at][1]} ${sum(lists[at])}枚`, lists[at], '当てはまるカードはありません。')
               : h('p', { class: 'sub', text: '数字を押すと、数えたカードの名前が出ます。' }),
-      h('p', { class: 'sub', text: 'Scryfallの利用者が付けた分類(removal / draw / ramp)で数えているので、目安としてご覧ください。1枚が2つ以上に数えられることがあります。「除去」には全体除去、「マナ加速」にはマナを出すアーティファクトやクリーチャーも含みます。土地は数えていません。' }));
+      h('p', { class: 'sub', text: 'Scryfallの利用者が付けた分類(removal / counterspell / draw / ramp)で数えているので、目安としてご覧ください。1枚が2つ以上に数えられることがあります。「除去」には全体除去、「打ち消し」には能力を打ち消すカード、「マナ加速」にはマナを出すアーティファクトやクリーチャーも含みます。土地は数えていません。' }));
   }
   $('dStatsBody').replaceChildren(pType, pCurve, pColor, pRole);
   if (!failed) loadDeckInfo(deck);
