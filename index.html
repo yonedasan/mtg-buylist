@@ -288,6 +288,42 @@ textarea.in { resize: vertical; min-height: 110px; font-family: var(--font-data)
 .radios input, #dReuseOnly { accent-color: var(--accent); }
 .steps { margin: 0; padding-left: 1.4em; font-size: 14px; display: flex; flex-direction: column; gap: 2px; }
 
+/* カード検索 */
+.sgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 12px; }
+.sgroup { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 6px 12px; align-items: start; }
+.sgroup > .lbl { font-size: 12px; color: var(--muted); letter-spacing: .06em; padding-top: 6px; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; min-width: 0; }
+.chk { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px 3px 9px; background: var(--bg); font-size: 14px; line-height: 1.5; cursor: pointer; white-space: nowrap; }
+.chk input { margin: 0; accent-color: var(--accent); }
+.chk:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); font-weight: 700; }
+.chk:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chk .mana { width: 16px; height: 16px; }
+.chk.plain { border-color: transparent; background: none; padding-left: 2px; }
+.tribes { max-height: 172px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; background: var(--bg); }
+.tribes .none { color: var(--muted); font-size: 13px; }
+.stools { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 8px; }
+.stools .in { width: 15em; max-width: 100%; padding: 5px 8px; font-size: 14px; }
+.stools select, .sfoot select, #sDeck, #sFit { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); padding: 6px 8px; font: inherit; font-size: 14px; max-width: 100%; }
+.sfoot { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; border-top: 1px solid var(--line); padding-top: 12px; }
+.sfoot label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; }
+.sfoot .btn.primary { min-width: 7em; }
+#sRows { list-style: none; margin: 0; padding: 0; }
+.srow { display: grid; grid-template-columns: 46px minmax(150px, 1.3fr) 76px 84px minmax(0, 2fr) 128px; grid-template-areas: "thumb name color rar text act"; gap: 4px 12px; padding: 8px 12px; align-items: center; }
+.srow + .srow { border-top: 1px solid var(--line); }
+.srow > * { min-width: 0; }
+.s-thumb { grid-area: thumb; } .s-name { grid-area: name; } .srow .c-color { grid-area: color; } .s-rar { grid-area: rar; } .s-text { grid-area: text; } .s-act { grid-area: act; }
+.s-thumb button { display: block; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.s-thumb .thumb { width: 46px; height: 64px; }
+.s-type { font-size: 12px; color: var(--muted); line-height: 1.4; overflow-wrap: anywhere; }
+.s-text { font-size: 12.5px; color: var(--muted); line-height: 1.5; white-space: pre-line; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.s-act { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; font-size: 12px; }
+.s-act .has { color: var(--muted); padding: 2px 4px; }
+.chip.rar-common { color: var(--muted); }
+.chip.rar-uncommon { color: var(--lo); background: color-mix(in srgb, var(--lo) 14%, transparent); }
+.chip.rar-rare { color: var(--mid); background: color-mix(in srgb, var(--mid) 12%, transparent); }
+.chip.rar-mythic { color: var(--hi); background: color-mix(in srgb, var(--hi) 10%, transparent); }
+.ztext { white-space: pre-line; font-size: 14px; line-height: 1.7; max-height: 12em; overflow-y: auto; }
+
 /* 一人回し */
 body.playing .top, body.playing .tabs { display: none; }
 body.playing .wrap { max-width: 1560px; padding-top: 14px; }
@@ -403,6 +439,15 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
   .wrow > :nth-child(1) { grid-area: t; } .wrow > :nth-child(2) { grid-area: n; } .wrow > :nth-child(3) { grid-area: c; }
   .wrow > :nth-child(4) { grid-area: p; } .wrow > :nth-child(5) { grid-area: s; } .wrow > :nth-child(6) { grid-area: a; }
   .wrow .btn { min-height: 38px; }
+  .sgrid { grid-template-columns: minmax(0, 1fr); }
+  .sgroup { grid-template-columns: minmax(0, 1fr); }
+  .sgroup > .lbl { padding-top: 0; }
+  .chk { padding: 6px 13px 6px 10px; }
+  .sfoot .btn.primary { flex: 1 1 100%; min-height: 44px; }
+  .srow { grid-template-columns: 46px minmax(0, 1fr) auto; padding: 12px; align-items: start;
+    grid-template-areas: "thumb name name" "thumb color rar" "text text text" "act act act"; }
+  .s-rar { justify-self: end; }
+  .s-act { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
   .play { --cw: 68px; }
   .pgrid { grid-template-columns: minmax(0, 1fr); }
   .pside { flex-direction: row; flex-wrap: wrap; }
@@ -432,6 +477,7 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
   <nav class="tabs" aria-label="画面の切り替え">
     <a href="#list" id="tabList">購入リスト</a>
     <a href="#decks" id="tabDecks">デッキ</a>
+    <a href="#search" id="tabSearch">カード検索</a>
   </nav>
 
   <div class="notice" id="alert" hidden><p id="alertText"></p></div>
@@ -590,6 +636,76 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
     </section>
   </main>
 
+  <main id="searchApp" class="stack" hidden>
+    <form class="add" id="sForm" autocomplete="off">
+      <div class="sgrid">
+        <div class="field">
+          <label for="sName">カード名(一部でも。日本語でも英語でも)</label>
+          <input class="in" id="sName" type="text" maxlength="60" placeholder="例: 教示者 / tutor">
+        </div>
+        <div class="field">
+          <label for="sText">テキスト(カードに書かれている文の一部)</label>
+          <input class="in" id="sText" type="text" maxlength="80" placeholder="例: 飛行 / カードを1枚引く">
+        </div>
+      </div>
+      <div class="sgroup" role="group" aria-labelledby="sColorLbl">
+        <span class="lbl" id="sColorLbl">色(固有色)</span>
+        <div class="checks">
+          <span class="checks" id="sColors"></span>
+          <label class="chk plain"><input type="checkbox" id="sMulti" checked> 多色カードを含む</label>
+          <label class="chk plain">デッキの色に収める <select id="sFit" aria-label="デッキの固有色に収まるカードだけにする"></select></label>
+        </div>
+      </div>
+      <div class="sgroup" role="group" aria-labelledby="sTypeLbl">
+        <span class="lbl" id="sTypeLbl">カードタイプ</span>
+        <div class="checks">
+          <span class="checks" id="sTypes"></span>
+          <label class="chk plain"><input type="checkbox" id="sLegend"> 伝説のカードだけ</label>
+        </div>
+      </div>
+      <div class="sgroup" role="group" aria-labelledby="sRarLbl">
+        <span class="lbl" id="sRarLbl">レアリティ</span>
+        <div class="checks" id="sRars"></div>
+      </div>
+      <div class="sgroup" role="group" aria-labelledby="sTribeLbl">
+        <span class="lbl" id="sTribeLbl">種族</span>
+        <div>
+          <div class="stools">
+            <input class="in" id="sTribeFind" type="search" placeholder="種族を探す(例: ゴブリン)" aria-label="種族の一覧を絞り込む">
+            <select id="sTribeMode" aria-label="種族を複数選んだときの条件"><option value="or">選んだどれかを持つ</option><option value="and">選んだすべてを持つ</option></select>
+            <span class="count" id="sTribeCount"></span>
+            <button class="linkbtn" id="sTribeClear" type="button" hidden>種族の選択を外す</button>
+          </div>
+          <div class="tribes"><div class="checks" id="sTribes"></div></div>
+        </div>
+      </div>
+      <div class="sfoot">
+        <button class="btn primary" id="sGo" type="submit">検索</button>
+        <label>並び順
+          <select id="sOrder">
+            <option value="edhrec">人気順(統率者戦でよく使われる順)</option>
+            <option value="name">カード名</option>
+            <option value="rarity">レアリティ(高い順)</option>
+            <option value="cmc">マナ総量(軽い順)</option>
+            <option value="released">新しい順</option>
+          </select>
+        </label>
+        <button class="linkbtn" id="sReset" type="button">条件をすべて消す</button>
+      </div>
+      <p class="err" id="sErr" role="alert" hidden></p>
+    </form>
+
+    <section class="stack tight" id="sResult" hidden>
+      <div class="filters">
+        <span id="sCount" role="status"></span>
+        <label id="sDeckWrap">入れ先のデッキ <select id="sDeck"></select></label>
+      </div>
+      <div class="list"><ul id="sRows"></ul></div>
+      <div><button class="btn" id="sMore" type="button" hidden>続きを表示</button></div>
+      <p class="credit">カードのデータはScryfallのものです。日本語版のあるカードは日本語で、ないカードは英語で出ます。紙のカードとして出ていないものは出しません。</p>
+    </section>
+  </main>
+
   <main id="playApp" class="play" hidden>
     <div id="playMsg" class="empty" hidden></div>
     <div id="playBody" hidden>
@@ -699,6 +815,7 @@ dialog::backdrop { background: color-mix(in srgb, #000 55%, transparent); }
   <div class="dlg">
     <img id="zoomImg" alt="">
     <p id="zoomName"></p>
+    <p id="zoomText" class="ztext" hidden></p>
     <div class="foot two"><button class="btn" id="zoomFlip" type="button" hidden>裏面を見る</button><button class="btn" id="zoomClose" type="button">閉じる</button></div>
   </div>
 </dialog>
@@ -1315,6 +1432,7 @@ function renderSync() {
 function render() {
   renderFilters(); renderSummary(); renderList();
   if (state.route.view === 'play') { if (!play.g || play.deckId !== state.route.id) renderPlay(); }   // 回している途中の盤面は、同期が来ても描き直さない
+  else if (state.route.view === 'search') renderSearch();
   else if (state.route.view !== 'list') renderDeckView();
 }
 function saveUi() { lsSet(LS.ui, state.ui); }
@@ -1732,6 +1850,7 @@ function readRoute() {
   if (v === 'decks') return { view: 'decks' };
   if (v.startsWith('deck-')) return { view: 'deck', id: v.slice(5) };
   if (v.startsWith('play-')) return { view: 'play', id: v.slice(5) };
+  if (v === 'search') return { view: 'search' };
   return { view: 'list' };
 }
 function applyRoute() {
@@ -1739,13 +1858,16 @@ function applyRoute() {
   const playing = r.view === 'play';
   document.body.classList.toggle('playing', playing);
   $('app').hidden = !state.started || r.view !== 'list';
-  $('deckApp').hidden = !state.started || r.view === 'list' || playing;
+  const inDecks = r.view === 'decks' || r.view === 'deck', searching = r.view === 'search';
+  $('deckApp').hidden = !state.started || !inDecks;
+  $('searchApp').hidden = !state.started || !searching;
   $('playApp').hidden = !state.started || !playing;
   if (playing) { renderPlay(); window.scrollTo(0, 0); return; }
   document.title = 'MTG購入リスト';
-  $('tabList').toggleAttribute('aria-current', r.view === 'list'); if (r.view === 'list') $('tabList').setAttribute('aria-current', 'page');
-  $('tabDecks').toggleAttribute('aria-current', r.view !== 'list'); if (r.view !== 'list') $('tabDecks').setAttribute('aria-current', 'page');
-  if (r.view !== 'list') { deckErrMsg(''); renderDeckView(); window.scrollTo(0, 0); } else render();
+  for (const [id, on] of [['tabList', r.view === 'list'], ['tabDecks', inDecks], ['tabSearch', searching]]) { if (on) $(id).setAttribute('aria-current', 'page'); else $(id).removeAttribute('aria-current'); }
+  if (inDecks) { deckErrMsg(''); renderDeckView(); window.scrollTo(0, 0); }
+  else if (searching) { renderSearch(); window.scrollTo(0, 0); }
+  else render();
 }
 const wubrg = colors => [...'WUBRG'].filter(x => colors.includes(x));
 const manaEls = (colors, known) => (colors.length ? wubrg(colors) : (known ? ['C'] : [])).map(x => h('img', { class: 'mana', src: MANA + x + '.svg', alt: COLOR_WORD[x] || x, width: 17, height: 17, loading: 'lazy' }));
@@ -2213,7 +2335,8 @@ function openZoom(id, back) {
   const c = play.g && play.g.cards[id];
   if (!c) return;
   const dfc = dfcOf(c), side = back == null ? showsBack(c) : back;
-  play.zoom = { id, back: side };
+  play.zoom = { id, back: side }; sv.zoom = null;
+  $('zoomText').hidden = true;
   $('zoomImg').hidden = !c.s;
   if (c.s) $('zoomImg').src = faceUrl(c.s, side && !!dfc, true);
   $('zoomImg').alt = dfc ? sideName(c, side) : c.j || c.n;
@@ -2224,7 +2347,7 @@ function openZoom(id, back) {
 }
 function bindPlay() {
   const deckNow = () => state.decks.find(d => d.id === state.route.id);
-  $('zoomFlip').addEventListener('click', () => { if (play.zoom) openZoom(play.zoom.id, !play.zoom.back); });
+  $('zoomFlip').addEventListener('click', () => { if (sv.zoom) zoomHit(sv.zoom.hit, !sv.zoom.back); else if (play.zoom) openZoom(play.zoom.id, !play.zoom.back); });
   $('pNext').addEventListener('click', () => act(g => { g.turn++; for (const id of g.bf) g.cards[id].tap = false; return drawCards(g, 1); },
     k => `ターン${play.g.turn}。すべてアンタップして、` + (k ? `「${pName(play.g.hand[play.g.hand.length - 1])}」を引きました。` : 'ライブラリーが空のため引けませんでした。')));
   $('pDraw').addEventListener('click', () => act(g => drawCards(g, 1), k => (k ? `「${pName(play.g.hand[play.g.hand.length - 1])}」を引きました。` : 'ライブラリーが空です。')));
@@ -2254,6 +2377,214 @@ function bindPlay() {
     act(g => { const id = 'k' + (++g.seq); g.cards[id] = { n: name, j: null, t: 'O', s: null, cmd: false, tap: false, ctr: 0, casts: 0, tok: true }; g.bf.push(id); }, `「${name}」トークンを出しました。`);
   });
   $('zoomClose').addEventListener('click', () => $('zoomDlg').close());
+}
+
+/* ---------- カード検索 ----------
+   条件からScryfallの検索の書き方を組み立てる。日本語版のあるカードは日本語版を、ないカードは英語版を出す。
+   種族とカードタイプは英語の名前で探す(日本語のタイプ行が入っていない日本語版があるため)。 */
+const CREATURE_TYPES = 'Human:人間|Warrior:戦士|Wizard:ウィザード|Soldier:兵士|Spirit:スピリット|Elf:エルフ|Elemental:エレメンタル|Zombie:ゾンビ|Rogue:ならず者|Cleric:クレリック|Shaman:シャーマン|Vampire:吸血鬼|Knight:騎士|Goblin:ゴブリン|Dragon:ドラゴン|Beast:ビースト|Bird:鳥|Phyrexian:ファイレクシアン|Druid:ドルイド|Cat:猫|Merfolk:マーフォーク|Horror:ホラー|Scout:スカウト|Angel:天使|Artificer:工匠|Giant:巨人|Dinosaur:恐竜|Insect:昆虫|Demon:デーモン|Eldrazi:エルドラージ|Construct:構築物|Pirate:海賊|Snake:蛇|Lizard:トカゲ|Warlock:邪術師|Faerie:フェアリー|Berserker:狂戦士|Noble:貴族|Golem:ゴーレム|Monk:モンク|Ogre:オーガ|Shapeshifter:多相の戦士|Advisor:アドバイザー|Dog:犬|Assassin:暗殺者|Werewolf:狼男|Sliver:スリヴァー|Ally:同盟者|Avatar:アバター|Dwarf:ドワーフ|Orc:オーク|Treefolk:ツリーフォーク|Minotaur:ミノタウルス|Wall:壁|Archer:射手|Wurm:ワーム|Rat:ネズミ|Mutant:ミュータント|Sphinx:スフィンクス|Wolf:狼|Nightmare:ナイトメア|Vedalken:ヴィダルケン|Kor:コー|Drake:ドレイク|Spider:蜘蛛|Detective:探偵|Drone:ドローン|Samurai:侍|God:神|Plant:植物|Skeleton:スケルトン|Citizen:市民|Elephant:象|Kithkin:キスキン|Fungus:ファンガス|Centaur:ケンタウルス|Illusion:イリュージョン|Hydra:ハイドラ|Frog:カエル|Devil:デビル|Rhino:サイ|Troll:トロール|Ninja:忍者|Peasant:農民|Halfling:ハーフリング|Scarecrow:カカシ|Fox:狐|Ooze:ウーズ|Ranger:レインジャー|Griffin:グリフィン|Bat:コウモリ|Myr:マイア|Djinn:ジン|Serpent:海蛇|Elder:エルダー|Bear:熊|Mercenary:傭兵|Dryad:ドライアド|Turtle:海亀|Horse:馬|Crab:カニ|Tyranid:ティラニッド|Boar:猪|Bard:バード|Pilot:操縦士|Fish:魚|Rebel:レベル|Elk:大鹿|Satyr:サテュロス|Cyclops:サイクロプス|Mount:乗騎|Gargoyle:ガーゴイル|Phoenix:フェニックス|Crocodile:クロコダイル|Moonfolk:ムーンフォーク|Kraken:クラーケン|Squirrel:リス|Time Lord:タイムロード|Robot:ロボット|Octopus:タコ|Rabbit:兎|Alien:エイリアン|Jackal:ジャッカル|Imp:インプ|Homunculus:ホムンクルス|Ape:類人猿|Shade:シェイド|Gnome:ノーム|Siren:セイレーン|Gorgon:ゴルゴン|Mouse:ハツカネズミ|Unicorn:ユニコーン|Barbarian:バーバリアン|Raccoon:アライグマ|Spellshaper:スペルシェイパー|Necron:ネクロン|Pegasus:ペガサス|Leviathan:リバイアサン|Otter:カワウソ|Astartes:アスタルテス|Hellion:ヘリオン|Chimera:キマイラ|Archon:執政官|Specter:スペクター|Aetherborn:霊基体|Nymph:ニンフ|Doctor:ドクター|Ox:雄牛|Tiefling:ティーフリング|Thrull:スラル|Efreet:イフリート|Scientist:科学者|Praetor:法務官|Thopter:飛行機械|Toy:玩具|Weird:奇魔|Survivor:生存者|Shark:サメ|Kavu:カヴー|Leech:ヒル|Assembly-Worker:組立作業員|Scorpion:蠍|Salamander:サラマンダー|Gremlin:グレムリン|Jellyfish:クラゲ|Ouphe:アウフ|Whale:鯨|Lhurgoyf:ルアゴイフ|Processor:昇華者|Yeti:イエティ|Nomad:ノーマッド|Kirin:麒麟|Juggernaut:巨大戦車|Hippogriff:ヒポグリフ|Incarnation:インカーネーション|Monkey:猿|Minion:ミニオン|Manticore:マンティコア|Eye:眼|Mole:モグラ|Harpy:ハーピー|Slith:スリス|Goat:ヤギ|Hag:ハッグ|Glimmer:光霊|Zubera:ずべら|Azra:アズラ|Egg:卵|Badger:アナグマ|Wraith:レイス|Worm:蟲|Basilisk:バジリスク|Kobold:コボルド|Demigod:亜神|Beholder:ビホルダー|Slug:ナメクジ|Antelope:アンテロープ|Camel:ラクダ|Masticore:マスティコア|Wolverine:クズリ|Bringer:運び手|Hyena:ハイエナ|Nephilim:ネフィリム|Sloth:ナマケモノ|Cyberman:サイバーマン|Sheep:羊|Trilobite:三葉虫|Dalek:ダーレク|Hippo:カバ|Mystic:神秘家|Synth:シンス|Noggle:ノッグル|Surrakar:サラカー|Lammasu:ラマスー|Brushwagg:ブラッシュワグ|Atog:エイトグ|Aurochs:オーロクス|Pest:邪魔者|Possum:フクロネズミ|Squid:イカ|Cockatrice:コカトリス|Dauthi:ダウスィー|Homarid:ホマリッド|Dreadnought:ドレッドノート|Gnoll:ノール|Starfish:ヒトデ|Clown:道化師|Armadillo:アルマジロ|Weasel:イタチ|Coward:臆病者|Nautilus:オウムガイ|Coyote:コヨーテ|Fractal:フラクタル|Gith:ギス|Lamia:ラミア|Primarch:総主長|Carrier:キャリアー|C\'tan:ク＝タン|Metathran:メタスラン|Spike:スパイク|Varmint:匪獣|Capybara:カピバラ|Sable:黒貂|Walrus:セイウチ|Flagbearer:旗手|Wombat:ウォンバット|Skunk:スカンク|Beaver:ビーバー|Oyster:カキ|Pangolin:センザンコウ|Seal:アザラシ|Inquisitor:異端審問官|Hamster:ハムスター|Mongoose:マングース|Orgg:オーグ|Porcupine:ヤマアラシ|Saproling:苗木|Mite:ダニ|Snail:カタツムリ|Monger:モンガー|Rigger:装具工|Sponge:スポンジ|Custodes:近衛団|Andorian|Army|Automaton|Balloon|Beeble|Bison|Blinkmoth|Borg|Brainiac|Caitian|Camarid|Caribou|Chicken|Child|Deserter|Drix|Echidna|Employee|Eternal|Ferret|Gamer|Gamma|Germ|Giraffe|Gorn|Graveborn|Guest|Head|Hedgehog|Hero|Inhuman|Inkling|Kangaroo|Kelpien|Klingon|Kree|Lanthanite|Lemur|Licid|Llama|Lobster|Moogle|Naga|Nightstalker|Officer|Orb|Orion|Pentavite|Performer|Phelddagrif|Pincher|Platypus|Prism|Q|Qu|Reflection|Reveler|Rukh|Sand|Scion|Sculpture|Serf|Servo|Shi\'ar|Skrull|Soltari|Sorcerer|Spawn|Splinter|Spy|Symbiote|Talosian|Teddy|Tellarite|Tentacle|Tetravite|Thalakos|Tholian|Tosk|Triskelavite|Urzan|Utrom|Villain|Volver|Vorta|Vulcan|Xindi'.split('|').map(x => { const [en, ja] = x.split(':'); return { en, ja: ja || en }; });
+const CARD_TYPES = [['creature', 'クリーチャー'], ['instant', 'インスタント'], ['sorcery', 'ソーサリー'], ['artifact', 'アーティファクト'], ['enchantment', 'エンチャント'], ['planeswalker', 'プレインズウォーカー'], ['land', '土地'], ['battle', 'バトル']];
+const RARITIES = [['common', 'コモン'], ['uncommon', 'アンコモン'], ['rare', 'レア'], ['mythic', '神話レア']];
+const RARITY_WORD = Object.assign(Object.fromEntries(RARITIES), { special: 'スペシャル', bonus: 'ボーナス' });
+// タイプ行の日本語。日本語版にタイプ行が入っていないカードが多いので、英語のタイプ行から組み立てる(分からない言葉は英語のまま)
+const T_SUPER = { Legendary: '伝説の', Basic: '基本', Snow: '氷雪', World: 'ワールド・', Kindred: '同族', Tribal: '部族', Token: 'トークン・' };
+const T_TYPE = { Creature: 'クリーチャー', Artifact: 'アーティファクト', Enchantment: 'エンチャント', Land: '土地', Instant: 'インスタント', Sorcery: 'ソーサリー', Planeswalker: 'プレインズウォーカー', Battle: 'バトル' };
+const T_SUB = Object.assign(Object.fromEntries(CREATURE_TYPES.map(t => [t.en, t.ja])), {
+  Aura: 'オーラ', Equipment: '装備品', Vehicle: '機体', Saga: '英雄譚', Treasure: '宝物', Food: '食物', Clue: '手掛かり', Blood: '血', Shrine: '祠', Curse: '呪い',
+  Background: '背景', Class: 'クラス', Room: '部屋', Case: '事件', Role: '役割', Rune: 'ルーン', Fortification: '城砦', Powerstone: 'パワーストーン', Map: '地図',
+  Plains: '平地', Island: '島', Swamp: '沼', Mountain: '山', Forest: '森', Desert: '砂漠', Gate: '門', Cave: '洞窟', Town: '町',
+  Arcane: '秘儀', Trap: '罠', Adventure: '出来事', Lesson: '講義', Omen: '予兆', Siege: '包囲戦', Spacecraft: '宇宙船', Planet: '惑星' });
+const T_MULTI = Object.keys(T_SUB).filter(k => k.includes(' '));
+function jaTypeLine(en) {
+  return String(en || '').split(' // ').map(side => {
+    const [head, tail] = side.split(' — ');
+    const words = head.trim().split(/\s+/).filter(Boolean);
+    const out = words.filter(w => T_SUPER[w]).map(w => T_SUPER[w]).join('') + words.filter(w => !T_SUPER[w]).map(w => T_TYPE[w] || w).join('・');
+    if (!tail) return out;
+    const subs = []; let rest = tail.trim();
+    while (rest) { const w = T_MULTI.find(k => rest === k || rest.startsWith(k + ' ')) || rest.split(' ')[0]; subs.push(T_SUB[w] || w); rest = rest.slice(w.length).trim(); }
+    return out + ' — ' + subs.join('・');
+  }).join(' // ');
+}
+const S_ORDER = { edhrec: ['edhrec', 'auto'], name: ['name', 'auto'], rarity: ['rarity', 'desc'], cmc: ['cmc', 'asc'], released: ['released', 'desc'] };
+const sv = { q: '', order: 'edhrec', page: 0, total: 0, more: false, rows: [], busy: false, searched: false, deckId: '', zoom: null };
+const checked = id => [...$(id).querySelectorAll('input:checked')].map(i => i.value);
+const fullDigits = t => t.replace(/[0-9]/g, d => String.fromCharCode(d.charCodeAt(0) + 0xFEE0));
+const halfDigits = t => t.replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0) - 0xFEE0));
+const sWord = w => w.replace(/["\\]/g, '');                 // 検索の書き方を壊す文字は外す
+function sErr(text) { $('sErr').textContent = text || ''; $('sErr').hidden = !text; }
+
+// 画面の条件 → 検索の書き方。条件が1つもなければ null
+function buildSearchQuery() {
+  const terms = [];
+  // カード名: 漢字を含む言葉は、ふりがな入りで登録されている名前にも当たる書き方にする
+  for (const w of bare($('sName').value).split(/\s+/).filter(Boolean).slice(0, 4).map(sWord)) {
+    if (hasKanji(w)) terms.push('name:/' + rubyRx(w) + '/');
+    else if (isJa(w)) { const a = w.replace(/=/g, '＝'), k = toKatakana(a); terms.push(k !== a ? `(name:"${a}" or name:"${k}")` : `name:"${a}"`); }
+    else terms.push(`name:"${w}"`);
+  }
+  // テキスト: 日本語版の文は数字が全角のことが多いので、半角・全角の両方で探す
+  for (const w of bare($('sText').value).split(/\s+/).filter(Boolean).slice(0, 6).map(sWord)) {
+    const forms = isJa(w) ? [...new Set([w, fullDigits(w), halfDigits(w)])] : [w];
+    terms.push(forms.length > 1 ? '(' + forms.map(f => `o:"${f}"`).join(' or ') + ')' : `o:"${forms[0]}"`);
+  }
+  // 色: 多色を含むなら「その色を含むカード」、含まないなら「その色だけのカード」
+  const colors = checked('sColors'), multi = $('sMulti').checked;
+  if (colors.length) terms.push('(' + colors.map(x => (x === 'C' ? 'id=c' : (multi ? 'id>=' : 'id=') + x.toLowerCase())).join(' or ') + ')');
+  const fit = state.decks.find(d => d.id === $('sFit').value);
+  if (fit && fit.commanders.length) terms.push('id<=' + (deckColors(fit).join('').toLowerCase() || 'c'));
+  const types = checked('sTypes');
+  if (types.length) terms.push('(' + types.map(t => 't:' + t).join(' or ') + ')');
+  if ($('sLegend').checked) terms.push('t:legendary');
+  const rars = checked('sRars');
+  if (rars.length) terms.push('(' + rars.map(r => 'r:' + r).join(' or ') + ')');
+  const tribes = checked('sTribes').slice(0, 20).map(t => 't:"' + sWord(t).toLowerCase() + '"');
+  if (tribes.length) terms.push($('sTribeMode').value === 'and' ? tribes.join(' ') : '(' + tribes.join(' or ') + ')');
+  return terms.length ? ['(lang:ja or -in:ja)', 'game:paper'].concat(terms).join(' ') : null;
+}
+
+// 検索結果の1枚を、画面とデッキ・購入リストで使う形にする(受け取ったデータはそのまま信用しない)
+function searchHit(c) {
+  const faces = Array.isArray(c.card_faces) ? c.card_faces : [];
+  const ja = jaNameOf(c);
+  const two = !c.image_uris && faces.length > 1 && !!(faces[1] && faces[1].image_uris);
+  return {
+    id: /^[0-9a-z-]{1,64}$/i.test(c.id || '') ? c.id : null, name: text(c.name, 200), ja, two,
+    type: text(c.printed_type_line ? noRuby(c.printed_type_line) : faces.some(f => f && f.printed_type_line) ? faces.map(f => (f.printed_type_line ? noRuby(f.printed_type_line) : jaTypeLine(f.type_line))).join(' // ') : jaTypeLine(c.type_line), 200),
+    text: noRuby(text(c.printed_text || faces.map(f => f.printed_text || f.oracle_text || '').filter(Boolean).join('\n//\n') || c.oracle_text, 1500)),
+    rarity: text(c.rarity, 12), ci: Array.isArray(c.color_identity) ? c.color_identity.filter(x => typeof x === 'string' && x.length === 1 && 'WUBRG'.includes(x)) : [],
+    dc: cleanDeckCard(toDeckCard(c, ja)),
+  };
+}
+async function runSearch(more) {
+  if (sv.busy) return;
+  if (!more) {
+    const query = buildSearchQuery();
+    if (!query) { sErr('条件を1つ以上入れてください(カード名、テキスト、色、タイプ、レアリティ、種族のどれか)。'); return; }
+    sv.q = query; sv.order = S_ORDER[$('sOrder').value] ? $('sOrder').value : 'edhrec'; sv.page = 0; sv.rows = []; sv.total = 0; sv.more = false;
+  }
+  sErr(''); sv.busy = true; renderSearch();
+  try {
+    const [ord, dir] = S_ORDER[sv.order];
+    const res = await sfFetch(`/cards/search?unique=cards&order=${ord}&dir=${dir}&page=${sv.page + 1}&q=` + q(sv.q));
+    if (res && Array.isArray(res.data)) {
+      sv.page++; sv.total = Number(res.total_cards) || res.data.length; sv.more = !!res.has_more;
+      sv.rows.push(...res.data.filter(c => c && typeof c === 'object').map(searchHit).filter(x => x.id && x.name));
+    } else if (!more) { sv.total = 0; sv.more = false; }
+    sv.searched = true;
+  } catch (e) {
+    console.error(e);
+    sErr('検索できませんでした。条件を減らすか、少し待ってから、もう一度試してください。');
+  }
+  sv.busy = false; renderSearch();
+}
+
+const sTarget = () => state.decks.find(d => d.id === sv.deckId) || null;
+async function searchToDeck(hit) {
+  const deck = sTarget(), label = hit.ja || hit.name;
+  if (!deck) { $('sDeck').focus(); return toast('先に、上の「入れ先のデッキ」を選んでください'); }
+  const r = mergeInto(deck, [hit.dc]);
+  if (!r.added) return toast(`「${label}」は、すでに「${deck.name}」に入っています`);
+  await saveDeck(r.deck);
+  toast(`「${label}」を「${deck.name}」に入れました`, { label: '元に戻す', run: () => saveDeck(deck) });
+}
+// 購入リストへ。入れ先のデッキを選んでいれば、そのデッキ名が入る(=そのデッキの候補リストに出る)
+async function searchToBuy(hit) {
+  const deck = sTarget(), dn = deck ? deck.name : '', label = hit.ja || hit.name;
+  const free = dn ? buyRows(hit.name).find(x => !(x.deck || '').trim() && !x.bought) : null;
+  if (free) {
+    await patch(free.id, { deck: dn });
+    return toast(`購入リストにあった「${label}」を、「${dn}」に入れる予定にしました`, { label: '元に戻す', run: () => patch(free.id, { deck: '' }) });
+  }
+  const id = newId();
+  addCard({ id, text: label, sel: { name: hit.name, nameJa: hit.ja || null }, priority: 2, deck: dn, memo: '' });
+  toast(`「${label}」を購入リストに追加しました` + (dn ? `(デッキ: ${dn})` : ''), { label: '元に戻す', run: () => removeCard(id) });
+}
+// カードを大きく見る(絵と文)。両面カードは裏面も見られる
+function zoomHit(hit, back) {
+  sv.zoom = { hit, back: !!back && hit.two }; play.zoom = null;
+  $('zoomImg').hidden = false;
+  $('zoomImg').src = faceUrl(hit.id, sv.zoom.back, true);
+  $('zoomImg').alt = hit.ja || hit.name;
+  $('zoomName').textContent = (hit.ja ? hit.ja + ' / ' : '') + hit.name;
+  $('zoomText').textContent = hit.text; $('zoomText').hidden = !hit.text;
+  $('zoomFlip').hidden = !hit.two;
+  $('zoomFlip').textContent = sv.zoom.back ? '表面を見る' : '裏面を見る';
+  if (!$('zoomDlg').open) $('zoomDlg').showModal();
+}
+
+function fillDeckSelect(el, list, first, value) {
+  const want = list.some(d => d.id === value) ? value : '';
+  const sig = first + '|' + list.map(d => d.id + ':' + d.name).join('|');
+  if (el.dataset.sig !== sig) { el.dataset.sig = sig; el.replaceChildren(h('option', { value: '', text: first }), ...list.map(d => h('option', { value: d.id, text: d.name }))); }
+  el.value = want;
+  return want;
+}
+function sRowEl(hit) {
+  const deck = sTarget(), main = hit.ja || hit.name, front = hit.name.split(' // ')[0];
+  const rows = buyRows(hit.name), dn = deck ? deck.name : '';
+  const inBuy = deck ? rows.some(x => (x.deck || '').trim() === dn) : rows.length > 0;
+  return h('li', { class: 'srow', dataset: { name: hit.name } },
+    h('div', { class: 's-thumb' }, h('button', { type: 'button', title: '大きく見る', 'aria-label': main + ' を大きく見る', onclick: () => zoomHit(hit, false) },
+      h('span', { class: 'thumb' }, h('img', { src: thumbUrl(hit.id), alt: '', loading: 'lazy' })))),
+    h('div', { class: 's-name names' }, h('span', { class: 'n1', text: main }), hit.ja ? h('span', { class: 'n2', text: hit.name }) : null, h('span', { class: 's-type', text: hit.type })),
+    h('div', { class: 'c-color', title: '固有色: ' + (hit.ci.length ? wubrg(hit.ci).map(x => COLOR_WORD[x]).join('') : '無色') }, manaEls(hit.ci, true)),
+    h('div', { class: 's-rar' }, RARITY_WORD[hit.rarity] ? h('span', { class: 'chip rar-' + hit.rarity, text: RARITY_WORD[hit.rarity] }) : null),
+    h('div', { class: 's-text', text: hit.text }),
+    h('div', { class: 's-act' },
+      state.decks.length ? (deck && inDeck(deck, hit.name)
+        ? h('span', { class: 'has', text: 'デッキに入っています' })
+        : h('button', { class: 'mini', type: 'button', text: 'デッキに入れる', 'aria-label': main + ' をデッキに入れる', onclick: () => searchToDeck(hit) })) : null,
+      inBuy ? h('span', { class: 'has', text: '購入リストにあります' })
+        : h('button', { class: 'mini', type: 'button', text: '購入リストに追加', 'aria-label': main + ' を購入リストに追加', onclick: () => searchToBuy(hit) }),
+      h('a', { class: 'shop', href: HARERUYA + q(front), target: '_blank', rel: 'noopener noreferrer', text: '晴れる屋で見る' })));
+}
+function renderSearch() {
+  const withCmd = state.decks.filter(d => d.commanders.length).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  fillDeckSelect($('sFit'), withCmd, '指定しない', $('sFit').value);
+  sv.deckId = fillDeckSelect($('sDeck'), state.decks.slice().sort((a, b) => a.name.localeCompare(b.name, 'ja')), '選ばない', sv.deckId);
+  $('sDeckWrap').hidden = !state.decks.length;
+  $('sGo').disabled = sv.busy; $('sGo').textContent = sv.busy ? '検索中…' : '検索';
+  $('sResult').hidden = !sv.searched && !sv.busy;
+  $('sCount').textContent = sv.busy && !sv.rows.length ? '検索しています…' : sv.total ? `${sv.total.toLocaleString('ja-JP')}枚のうち${sv.rows.length}枚を表示` : '';
+  $('sRows').replaceChildren(...(sv.rows.length ? sv.rows.map(sRowEl)
+    : [h('li', { class: 'empty' }, sv.busy ? h('strong', { text: '検索しています…' }) : [h('strong', { text: '条件に合うカードがありません' }), '条件を減らすか、言葉を短くして試してください。日本語のテキストは、カードに書かれているとおりの言葉で探します。'])]));
+  $('sMore').hidden = !sv.more; $('sMore').disabled = sv.busy; $('sMore').textContent = sv.busy ? '読み込み中…' : '続きを表示';
+}
+
+function bindSearch() {
+  const chk = (value, label, icon) => h('label', { class: 'chk' }, h('input', { type: 'checkbox', value }), icon || null, label);
+  $('sColors').replaceChildren(...['W', 'U', 'B', 'R', 'G', 'C'].map(x => chk(x, COLOR_WORD[x] || '無色', h('img', { class: 'mana', src: MANA + x + '.svg', alt: '', width: 16, height: 16 }))));
+  $('sTypes').replaceChildren(...CARD_TYPES.map(([v, l]) => chk(v, l)));
+  $('sRars').replaceChildren(...RARITIES.map(([v, l]) => chk(v, l)));
+  $('sTribes').replaceChildren(...CREATURE_TYPES.map(t => { const el = chk(t.en, t.ja); el.dataset.find = (t.ja + ' ' + t.en).toLowerCase(); el.title = t.en; return el; }),
+    h('span', { class: 'none', id: 'sTribeNone', text: '当てはまる種族がありません。', hidden: true }));
+  // 種族の一覧: 入力した文字を含むものと、選んであるものだけを残す
+  const filterTribes = () => {
+    const t = $('sTribeFind').value.trim().toLowerCase(), k = toKatakana(t);
+    let shown = 0, on = 0;
+    for (const el of $('sTribes').querySelectorAll('.chk')) {
+      const isOn = el.querySelector('input').checked, hit = !t || el.dataset.find.includes(t) || el.dataset.find.includes(k);
+      el.hidden = !(hit || isOn); if (hit) shown++; if (isOn) on++;
+    }
+    $('sTribeNone').hidden = shown > 0;
+    $('sTribeCount').textContent = on ? `${on}個を選択中` : '';
+    $('sTribeClear').hidden = !on;
+  };
+  $('sTribeFind').addEventListener('input', filterTribes);
+  $('sTribes').addEventListener('change', filterTribes);
+  $('sTribeClear').addEventListener('click', () => { for (const i of $('sTribes').querySelectorAll('input:checked')) i.checked = false; filterTribes(); });
+  $('sTribeFind').addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });   // 絞り込み欄のEnterでは検索しない
+  $('sForm').addEventListener('submit', e => { e.preventDefault(); runSearch(false); });
+  $('sMore').addEventListener('click', () => runSearch(true));
+  $('sOrder').addEventListener('change', () => { if (sv.searched && !sv.busy) runSearch(false); });
+  $('sDeck').addEventListener('change', e => { sv.deckId = e.target.value; renderSearch(); });
+  $('sReset').addEventListener('click', () => {
+    $('sForm').reset(); $('sMulti').checked = true; $('sTribeFind').value = '';
+    filterTribes(); sErr('');
+    Object.assign(sv, { q: '', page: 0, total: 0, more: false, rows: [], searched: false });
+    renderSearch();
+  });
 }
 
 /* ---------- 同期(同期コード + 暗号化) ----------
@@ -2506,6 +2837,7 @@ function bind() {
   $('prevGo').addEventListener('click', () => switchCode(normCode(lsGet(LS.prev, '')), []));
   bindDecks();
   bindPlay();
+  bindSearch();
   window.addEventListener('hashchange', applyRoute);
 }
 
